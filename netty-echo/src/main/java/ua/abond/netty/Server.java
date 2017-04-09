@@ -16,9 +16,14 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.http.HttpObjectAggregator;
+import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
+import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.util.CharsetUtil;
 
 public class Server {
+    private static final String WEBSOCKET_PATH = "/websocket";
 
     public void start() {
         EventLoopGroup slave = new NioEventLoopGroup();
@@ -27,7 +32,18 @@ public class Server {
         ServerBootstrap server = new ServerBootstrap()
                 .group(master, slave)
                 .channel(NioServerSocketChannel.class);
-        server.childHandler(new WebServerChannelInitializer());
+        server.childHandler(new ChannelInitializer<SocketChannel>() {
+            @Override
+            protected void initChannel(SocketChannel ch) throws Exception {
+                ChannelPipeline pipeline = ch.pipeline();
+                pipeline.addLast(new HttpServerCodec());
+                pipeline.addLast(new HttpObjectAggregator(65536));
+                pipeline.addLast(new WebSocketServerCompressionHandler());
+                pipeline.addLast(new WebSocketServerProtocolHandler(WEBSOCKET_PATH, null, true));
+                pipeline.addLast(new WebSocketIndexPageHandler(WEBSOCKET_PATH));
+                pipeline.addLast(new WebSocketFrameHandler());
+            }
+        });
 
         Channel channel;
         try {
