@@ -17,10 +17,6 @@ import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketSe
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.HashMap;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-
 @Slf4j
 public class WebSocketServer {
     private static final String WEBSOCKET_URI = "/ws";
@@ -34,10 +30,8 @@ public class WebSocketServer {
     }
 
     public void start() {
-        ScheduledExecutorService executorService = Executors.newScheduledThreadPool(1);
-
-        EventLoopGroup master = new NioEventLoopGroup();
-        EventLoopGroup slave = new NioEventLoopGroup();
+        EventLoopGroup master = new NioEventLoopGroup(2);
+        EventLoopGroup slave = new NioEventLoopGroup(3);
 
         ServerBootstrap bootstrap = new ServerBootstrap()
                 .channel(NioServerSocketChannel.class)
@@ -57,8 +51,6 @@ public class WebSocketServer {
         Channel channel;
         try {
             channel = bootstrap.bind(port).channel();
-
-            new Thread(new GameLoop(channelGroup, new HashMap<>())).start();
 
             channel.closeFuture().sync();
         } catch (InterruptedException e) {
