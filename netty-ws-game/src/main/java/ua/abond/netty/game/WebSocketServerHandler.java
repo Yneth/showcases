@@ -6,7 +6,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import io.netty.channel.Channel;
@@ -32,9 +34,9 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
     private final List<Bullet> bullets = new ArrayList<>();
     private final List<HealthPack> healthPacks = new ArrayList<>();
 
-    private final Map<ChannelId, Player> users = new HashMap<>();
+    private static final Map<ChannelId, Player> users = new ConcurrentHashMap<>();
 
-    private boolean firstRun = true;
+    private static AtomicBoolean firstRun = new AtomicBoolean(true);
 
     public WebSocketServerHandler(ChannelGroup channelGroup) {
         this.channelGroup = channelGroup;
@@ -56,7 +58,7 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame msg)
             throws Exception {
-        if (firstRun) {
+        if (firstRun.get()) {
             EventExecutor executor = ctx.executor();
 
             executor.scheduleAtFixedRate(() -> {
@@ -85,7 +87,7 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
 
                 channelGroup.writeAndFlush(new TextWebSocketFrame("0:" + userPositions));
             }, 0, 33, TimeUnit.MILLISECONDS);
-            firstRun = false;
+            firstRun.set(false);
         }
         if (msg instanceof PingWebSocketFrame) {
             log.warn("ping");

@@ -1,17 +1,17 @@
 package ua.abond.netty.game;
 
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+
 import io.netty.channel.ChannelId;
 import io.netty.channel.group.ChannelGroup;
 import ua.abond.netty.game.domain.Bullet;
 import ua.abond.netty.game.domain.HealthPack;
 import ua.abond.netty.game.domain.Player;
 import ua.abond.netty.game.domain.Vector2;
-
-import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
 
 public class GameLoop implements Runnable {
     private final Random random = new SecureRandom();

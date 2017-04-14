@@ -58,7 +58,7 @@ public class HttpStaticFileHandler extends SimpleChannelInboundHandler<FullHttpR
             File in = new File(resource.toURI());
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
             setContentTypeHeader(response, in);
-            setDateAndCacheHeaders(response, in);
+//            setDateAndCacheHeaders(response, in);
             response.headers().set(TRANSFER_ENCODING, CHUNKED);
 
             ctx.write(response);

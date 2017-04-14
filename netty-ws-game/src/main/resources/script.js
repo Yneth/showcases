@@ -33,7 +33,12 @@
         var cmd = data[0];
         switch (cmd) {
             case "0": {
-                users = data[1].split(';');
+                var positions = data[1].split(';');
+                users = [];
+                positions.forEach(function (p) {
+                    var coords = p.split(',');
+                    users.push({'x': coords[0], 'y': coords[1]});
+                });
                 break;
             }
         }
@@ -55,8 +60,7 @@
         bufferCtx.clearRect(0, 0, canvasWidth, canvasHeight);
         for (var i = 0; i < users.length; i++) {
             bufferCtx.beginPath();
-            var userPos = users[i].split(',');
-            bufferCtx.arc(+userPos[0], +userPos[1], 20, 0, 2 * Math.PI);
+            bufferCtx.arc(users[i].x, users[i].y, 20, 0, 2 * Math.PI);
             bufferCtx.stroke();
         }
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);

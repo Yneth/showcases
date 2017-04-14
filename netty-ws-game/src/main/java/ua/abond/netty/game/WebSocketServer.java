@@ -31,7 +31,7 @@ public class WebSocketServer {
     }
 
     public void start() {
-        EventLoopGroup master = new NioEventLoopGroup(2);
+        EventLoopGroup master = new NioEventLoopGroup(1);
         EventLoopGroup slave = new NioEventLoopGroup(3);
 
         ServerBootstrap bootstrap = new ServerBootstrap()
