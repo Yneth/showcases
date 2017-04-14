@@ -60,8 +60,8 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
             EventExecutor executor = ctx.executor();
 
             executor.scheduleAtFixedRate(() -> {
-                final float deltaTime = 17 / 1000f;
-                final float speed = 1;
+                final float deltaTime = 17.0f / 1000.0f;
+                final float speed = 100.0f;
                 for (Player player : users.values()) {
                     Vector2 direction = player.getPosition().clone().minus(player.getTarget()).normalize();
                     Vector2 velocity = direction.multiply(speed).multiply(deltaTime);
