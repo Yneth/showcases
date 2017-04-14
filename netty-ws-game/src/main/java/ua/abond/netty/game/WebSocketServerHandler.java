@@ -2,7 +2,7 @@ package ua.abond.netty.game;
 
 import java.security.SecureRandom;
 import java.util.Random;
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.stream.Collectors;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -10,6 +10,7 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
+import io.netty.util.concurrent.EventExecutor;
 import lombok.extern.slf4j.Slf4j;
 import ua.abond.netty.game.domain.Player;
 import ua.abond.netty.game.domain.Vector2;
@@ -17,10 +18,7 @@ import ua.abond.netty.game.domain.Vector2;
 @Slf4j
 public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
     private final Random random = new SecureRandom();
-
     private final ChannelMap<Player> playerMap;
-
-    private static AtomicBoolean firstRun = new AtomicBoolean(true);
 
     public WebSocketServerHandler(ChannelMap<Player> playerMap) {
         this.playerMap = playerMap;
@@ -41,19 +39,6 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame msg)
             throws Exception {
-        if (firstRun.get()) {
-//            EventExecutor executor = ctx.executor();
-//
-//            executor.scheduleAtFixedRate(() -> {
-//                final float deltaTime = 17.0f / 1000.0f;
-//                final float speed = 100.0f;
-//                for (Player player : users.values()) {
-//                    Vector2 direction = player.getPosition().clone().minus(player.getTarget()).normalize();
-//                    Vector2 velocity = direction.multiply(speed).multiply(deltaTime);
-//
-//                    player.getPosition().add(velocity);
-//                }
-//            }, 0, 17, TimeUnit.MILLISECONDS);
 //
 //            executor.scheduleAtFixedRate(() -> {
 //                final int maxHealthPacks = 5;
@@ -61,21 +46,10 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
 //                    healthPacks.add(HealthPack.builder().position(randomPosition()).build());
 //                }
 //            }, 0, 1000, TimeUnit.MILLISECONDS);
-//
-//            executor.scheduleAtFixedRate(() -> {
-//                String userPositions = users.values().stream()
-//                        .map(Player::getPosition)
-//                        .map(pos -> pos.getX() + "," + pos.getY())
-//                        .collect(Collectors.joining(";"));
-//
-//                playerMap.writeAndFlush(new TextWebSocketFrame("0:" + userPositions));
-//            }, 0, 33, TimeUnit.MILLISECONDS);
-//            firstRun.set(false);
-        }
         if (msg instanceof PingWebSocketFrame) {
             log.warn("ping");
         }
-        if (msg instanceof TextWebSocketFrame) {
+        else if (msg instanceof TextWebSocketFrame) {
             String command = ((TextWebSocketFrame) msg).text();
 
             Channel channel = ctx.channel();
