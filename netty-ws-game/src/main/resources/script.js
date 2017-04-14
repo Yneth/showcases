@@ -1,27 +1,39 @@
 (function () {
     var WS_URL = "ws://localhost:8082/ws";
 
-    var socket = new WebSocket(WS_URL);
-    socket.onmessage = function (e) {
-        console.log(e.data);
-    }
-    setTimeout(function () {
-        joinGame("Test");
-    }, 5000);
-
     var canvas = document.getElementById("canvas");
 
-    canvas.width = document.body.clientWidth;
-    canvas.height = document.body.clientHeight;
-    canvasW = canvas.width;
-    canvasH = canvas.height;
+//    canvas.width = document.body.clientWidth;
+    canvas.width = 1904;
+//    canvas.height = document.body.clientHeight;
+    canvas.height = 952;
+    canvasWidth = canvas.width;
+    canvasHeight = canvas.height;
 
     var ctx = canvas.getContext("2d");
-    setInterval(function () {
-        ctx.beginPath();
-        ctx.arc(100, 100, 40, 0, 2 * Math.PI);
-        ctx.stroke();
-    }, 30);
+
+    var socket = new WebSocket(WS_URL);
+    socket.onopen = function (e) {
+        joinGame("Test")
+    }
+    socket.onmessage = function (e) {
+        var data = e.data.split(":");
+        var cmd = data[0];
+        switch (cmd) {
+            case "0": {
+                var userPositions = data[1].split(';');
+                ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+                for (var i = 0; i < userPositions.length; i++) {
+                    var userPos = userPositions[i].split(',');
+                    ctx.beginPath();
+                    ctx.arc(+userPos[0], +userPos[1], 20, 0, 2 * Math.PI);
+                    console.log(userPos[0] + "   " + userPos[1]);
+                    ctx.stroke();
+                }
+                break;
+            }
+        }
+    }
 
     function joinGame(username) {
         socket.send("join:" + username);
