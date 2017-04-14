@@ -43,12 +43,12 @@ public class WebSocketServer {
             protected void initChannel(SocketChannel ch) throws Exception {
                 ChannelPipeline pipeline = ch.pipeline();
                 pipeline.addLast(new HttpServerCodec());
-                pipeline.addLast(new ChunkedWriteHandler());
                 pipeline.addLast(new HttpObjectAggregator(65536));
-                pipeline.addLast(new HttpStaticFileHandler());
                 pipeline.addLast(new WebSocketServerCompressionHandler());
                 pipeline.addLast(new WebSocketServerProtocolHandler(WEBSOCKET_URI, null, true));
                 pipeline.addLast(new WebSocketServerHandler(channelGroup));
+                pipeline.addLast(new ChunkedWriteHandler());
+                pipeline.addLast(new HttpStaticFileHandler());
             }
         });
         Channel channel;
