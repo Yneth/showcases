@@ -17,17 +17,18 @@ import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketSe
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.extern.slf4j.Slf4j;
+import ua.abond.netty.game.domain.Player;
 
 @Slf4j
 public class WebSocketServer {
     private static final String WEBSOCKET_URI = "/ws";
 
     private final int port;
-    private final ChannelGroup channelGroup;
+    private final ChannelMap<Player> channelMap;
 
     public WebSocketServer(int port) {
         this.port = port;
-        this.channelGroup = new DefaultChannelGroup(GlobalEventExecutor.INSTANCE);
+        this.channelMap = new ChannelMap<>(new DefaultChannelGroup(GlobalEventExecutor.INSTANCE));
     }
 
     public void start() {
@@ -46,7 +47,7 @@ public class WebSocketServer {
                 pipeline.addLast(new HttpObjectAggregator(65536));
                 pipeline.addLast(new WebSocketServerCompressionHandler());
                 pipeline.addLast(new WebSocketServerProtocolHandler(WEBSOCKET_URI, null, true));
-                pipeline.addLast(new WebSocketServerHandler(channelGroup));
+                pipeline.addLast(new WebSocketServerHandler(channelMap));
                 pipeline.addLast(new ChunkedWriteHandler());
                 pipeline.addLast(new HttpStaticFileHandler());
             }
