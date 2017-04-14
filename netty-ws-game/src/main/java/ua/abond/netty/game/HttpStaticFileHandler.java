@@ -1,20 +1,6 @@
 package ua.abond.netty.game;
 
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.channel.SimpleChannelInboundHandler;
-import io.netty.handler.codec.http.DefaultFullHttpResponse;
-import io.netty.handler.codec.http.DefaultHttpResponse;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpChunkedInput;
-import io.netty.handler.codec.http.HttpMethod;
-import io.netty.handler.codec.http.HttpResponse;
-import io.netty.handler.codec.http.HttpResponseStatus;
-import io.netty.handler.stream.ChunkedFile;
-
-import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
-import java.io.RandomAccessFile;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -23,11 +9,30 @@ import java.util.GregorianCalendar;
 import java.util.Locale;
 import java.util.TimeZone;
 
+import javax.activation.MimetypesFileTypeMap;
+
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFuture;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.DefaultHttpResponse;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpChunkedInput;
+import io.netty.handler.codec.http.HttpMethod;
+import io.netty.handler.codec.http.HttpResponse;
+import io.netty.handler.codec.http.HttpResponseStatus;
+import io.netty.handler.stream.ChunkedFile;
+
 import static io.netty.handler.codec.http.HttpHeaderNames.CACHE_CONTROL;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderNames.DATE;
 import static io.netty.handler.codec.http.HttpHeaderNames.EXPIRES;
 import static io.netty.handler.codec.http.HttpHeaderNames.LAST_MODIFIED;
+import static io.netty.handler.codec.http.HttpHeaderValues.CHUNKED;
+import static io.netty.handler.codec.http.HttpHeaders.Names.TRANSFER_ENCODING;
+import static io.netty.handler.codec.http.HttpResponseStatus.FORBIDDEN;
+import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
@@ -40,40 +45,34 @@ public class HttpStaticFileHandler extends SimpleChannelInboundHandler<FullHttpR
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg)
             throws Exception {
+        Channel channel = ctx.channel();
         String uri = msg.uri();
         if ("/".equals(uri)) {
-            uri = "index.html";
+            uri = "/index.html";
         }
         if (!msg.method().equals(HttpMethod.GET)) {
-            ctx.channel().writeAndFlush(new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.FORBIDDEN))
-                    .addListener(ChannelFutureListener.CLOSE);
-            return;
+            sendError(channel, FORBIDDEN);
         }
-        URL resource = this.getClass().getClassLoader().getResource(uri);
-        File in = null;
+
+        URL resource = this.getClass().getResource(uri);
         if (resource != null) {
-            in = new File(resource.toURI());
-            if (!in.exists()) {
-                ctx.channel().writeAndFlush(new DefaultFullHttpResponse(HTTP_1_1, HttpResponseStatus.NOT_FOUND))
-                        .addListener(ChannelFutureListener.CLOSE);
-                return;
-            }
+            File in = new File(resource.toURI());
             HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
             setContentTypeHeader(response, in);
             setDateAndCacheHeaders(response, in);
+            response.headers().set(TRANSFER_ENCODING, CHUNKED);
+
             ctx.write(response);
-            RandomAccessFile r = new RandomAccessFile(in, "r");
-            ctx.writeAndFlush(new HttpChunkedInput(new ChunkedFile(r, 0, r.length(), 8192)))
+            ctx.writeAndFlush(new HttpChunkedInput(new ChunkedFile(in)))
                     .addListener(ChannelFutureListener.CLOSE);
-            return;
-        } else if (in != null) {
-            if (!in.exists()) {
-                ctx.channel().write(new DefaultHttpResponse(HTTP_1_1, HttpResponseStatus.NOT_FOUND))
-                        .addListener(ChannelFutureListener.CLOSE);
-                return;
-            }
+        } else {
+            sendError(channel, NOT_FOUND);
         }
-        ctx.close();
+    }
+
+    private ChannelFuture sendError(Channel channel, HttpResponseStatus status) {
+        return channel.write(new DefaultHttpResponse(HTTP_1_1, status))
+                .addListener(ChannelFutureListener.CLOSE);
     }
 
     private static void setDateAndCacheHeaders(HttpResponse response, File fileToCache) {
