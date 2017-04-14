@@ -1,5 +1,14 @@
 package ua.abond.netty.game;
 
+import java.security.SecureRandom;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelId;
@@ -14,14 +23,6 @@ import ua.abond.netty.game.domain.Bullet;
 import ua.abond.netty.game.domain.HealthPack;
 import ua.abond.netty.game.domain.Player;
 import ua.abond.netty.game.domain.Vector2;
-
-import java.security.SecureRandom;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
 
 @Slf4j
 public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
@@ -62,8 +63,10 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
                 final float deltaTime = 17 / 1000f;
                 final float speed = 1;
                 for (Player player : users.values()) {
-                    player.getPosition().add(player.getTarget().normalize().multiply(speed).multiply(deltaTime));
-                    channelGroup.writeAndFlush(new TextWebSocketFrame(player.getPosition().toString()));
+                    Vector2 direction = player.getPosition().clone().minus(player.getTarget()).normalize();
+                    Vector2 velocity = direction.multiply(speed).multiply(deltaTime);
+
+                    player.getPosition().add(velocity);
                 }
             }, 0, 17, TimeUnit.MILLISECONDS);
 
@@ -75,7 +78,12 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
             }, 0, 1000, TimeUnit.MILLISECONDS);
 
             executor.scheduleAtFixedRate(() -> {
-                channelGroup.writeAndFlush(new TextWebSocketFrame(healthPacks.toString() + "," + users.values().toString()));
+                String userPositions = users.values().stream()
+                        .map(Player::getPosition)
+                        .map(pos -> pos.getX() + "," + pos.getY())
+                        .collect(Collectors.joining(";"));
+
+                channelGroup.writeAndFlush(new TextWebSocketFrame("0:" + userPositions));
             }, 0, 33, TimeUnit.MILLISECONDS);
             firstRun = false;
         }
@@ -89,11 +97,12 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
             if (command.startsWith("join:")) {
                 String nickname = command.substring(5);
                 channelGroup.add(channel);
+                Vector2 position = randomPosition();
                 users.put(channel.id(),
                         Player.builder()
                                 .name(nickname)
-                                .position(randomPosition())
-                                .target(Vector2.ZERO)
+                                .position(position)
+                                .target(position)
                                 .build()
                 );
             } else if (command.startsWith("leave:")) {
@@ -119,6 +128,6 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
     }
 
     private Vector2 randomPosition() {
-        return Vector2.builder().x(random.nextInt(10)).y(random.nextInt(10)).build();
+        return Vector2.builder().x(random.nextInt(500)).y(random.nextInt(500)).build();
     }
 }

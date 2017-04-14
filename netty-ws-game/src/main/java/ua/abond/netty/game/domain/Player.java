@@ -9,7 +9,7 @@ import lombok.ToString;
 @ToString
 public class Player {
     private Vector2 position;
-    private Vector2 target = Vector2.ZERO;
+    private Vector2 target;
 
     private int screenWidth;
     private int screenHeight;
