@@ -1,13 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
     <title>Title</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <style type="text/css">
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        .wrapper {
+            min-height: 100%;
+        }
+    </style>
+    <!--[if lte IE 6]>
+    <style type="text/css">
+        #container {
+            height: 100%;
+        }
+    </style>
+    <![endif]-->
 </head>
 <body>
-    <canvas id="canvas" style="width:100%">
+<canvas id="canvas" class="wrapper">
+</canvas>
 
-    </canvas>
-    <script src="/script.js"></script>
+<script src="/script.js"></script>
 </body>
 </html>

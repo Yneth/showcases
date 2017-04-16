@@ -11,7 +11,7 @@ import io.netty.channel.group.ChannelGroup;
 import ua.abond.netty.game.domain.Bullet;
 import ua.abond.netty.game.domain.HealthPack;
 import ua.abond.netty.game.domain.Player;
-import ua.abond.netty.game.domain.Vector2;
+import ua.abond.netty.game.physics.Vector2;
 
 public class GameLoop implements Runnable {
     private final Random random = new SecureRandom();
