@@ -3,6 +3,7 @@ package ua.abond.netty.game.domain;
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
+import ua.abond.netty.game.physics.Vector2;
 
 @Data
 @Builder
@@ -10,6 +11,7 @@ import lombok.ToString;
 public class Player {
     private Vector2 position;
     private Vector2 target;
+    private Vector2 rotation;
 
     private int screenWidth;
     private int screenHeight;

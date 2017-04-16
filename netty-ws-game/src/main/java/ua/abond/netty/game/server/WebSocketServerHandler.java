@@ -1,8 +1,4 @@
-package ua.abond.netty.game;
-
-import java.security.SecureRandom;
-import java.util.Random;
-import java.util.stream.Collectors;
+package ua.abond.netty.game.server;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
@@ -10,18 +6,27 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
-import io.netty.util.concurrent.EventExecutor;
 import lombok.extern.slf4j.Slf4j;
+import ua.abond.netty.game.ChannelMap;
 import ua.abond.netty.game.domain.Player;
-import ua.abond.netty.game.domain.Vector2;
+import ua.abond.netty.game.event.PlayerAddedMessage;
+import ua.abond.netty.game.physics.Vector2;
+import ua.abond.netty.game.event.Message;
+import ua.abond.netty.game.event.PlayerShootMessage;
+
+import java.security.SecureRandom;
+import java.util.Queue;
+import java.util.Random;
 
 @Slf4j
 public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
     private final Random random = new SecureRandom();
     private final ChannelMap<Player> playerMap;
+    private final Queue<Message> eventBus;
 
-    public WebSocketServerHandler(ChannelMap<Player> playerMap) {
+    public WebSocketServerHandler(ChannelMap<Player> playerMap, Queue<Message> eventBus) {
         this.playerMap = playerMap;
+        this.eventBus = eventBus;
     }
 
     @Override
@@ -39,29 +44,14 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame msg)
             throws Exception {
-//
-//            executor.scheduleAtFixedRate(() -> {
-//                final int maxHealthPacks = 5;
-//                if (healthPacks.size() < maxHealthPacks) {
-//                    healthPacks.add(HealthPack.builder().position(randomPosition()).build());
-//                }
-//            }, 0, 1000, TimeUnit.MILLISECONDS);
         if (msg instanceof PingWebSocketFrame) {
             log.warn("ping");
-        }
-        else if (msg instanceof TextWebSocketFrame) {
+        } else if (msg instanceof TextWebSocketFrame) {
             String command = ((TextWebSocketFrame) msg).text();
-
             Channel channel = ctx.channel();
             if (command.startsWith("join:")) {
                 String nickname = command.substring(5);
-                Vector2 position = randomPosition();
-                playerMap.put(channel, Player.builder()
-                        .name(nickname)
-                        .position(position)
-                        .target(position)
-                        .build()
-                );
+                eventBus.add(new PlayerAddedMessage(channel, nickname));
             } else if (command.startsWith("leave:")) {
                 playerMap.remove(channel);
             } else if (command.startsWith("message:")) {
@@ -80,6 +70,8 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
                 playerMap.put(channel, currentPlayer);
 
                 playerMap.writeAndFlush(new TextWebSocketFrame(currentPlayer.toString()));
+            } else if (command.startsWith("1:")) {
+                eventBus.add(new PlayerShootMessage(channel));
             }
         }
     }

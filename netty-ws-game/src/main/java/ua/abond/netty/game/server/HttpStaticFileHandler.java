@@ -1,15 +1,4 @@
-package ua.abond.netty.game;
-
-import java.io.File;
-import java.net.URL;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
-import java.util.Locale;
-import java.util.TimeZone;
-
-import javax.activation.MimetypesFileTypeMap;
+package ua.abond.netty.game.server;
 
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFuture;
@@ -24,6 +13,16 @@ import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.stream.ChunkedFile;
 
+import javax.activation.MimetypesFileTypeMap;
+import java.io.File;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.GregorianCalendar;
+import java.util.Locale;
+import java.util.TimeZone;
+
 import static io.netty.handler.codec.http.HttpHeaderNames.CACHE_CONTROL;
 import static io.netty.handler.codec.http.HttpHeaderNames.CONTENT_TYPE;
 import static io.netty.handler.codec.http.HttpHeaderNames.DATE;
@@ -37,9 +36,9 @@ import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class HttpStaticFileHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
-    public static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
-    public static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
-    public static final int HTTP_CACHE_SECONDS = 60;
+    private static final int HTTP_CACHE_SECONDS = 60;
+    private static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
+    private static final String HTTP_DATE_FORMAT = "EEE, dd MMM yyyy HH:mm:ss zzz";
 
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg)

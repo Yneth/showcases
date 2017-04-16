@@ -1,12 +1,15 @@
-package ua.abond.netty.game.domain;
+package ua.abond.netty.game.physics;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
+@AllArgsConstructor
 public class Vector2 {
-    public static final Vector2 ZERO = Vector2.builder().x(0f).y(0f).build();
+    public static final Vector2 ZERO = new Vector2(0f, 0f);
+    public static final Vector2 ONE = new Vector2(1f, 1f);
 
     private float x;
     private float y;
@@ -47,7 +50,19 @@ public class Vector2 {
         return (float) Math.sqrt(x * x + y * y);
     }
 
-    public Vector2 clone() {
+    public boolean isCloseTo(Vector2 that) {
+        return isCloseTo(that, 0.001f);
+    }
+
+    public boolean isCloseTo(Vector2 that, float eps) {
+        return areClose(this.x, that.x, eps) && areClose(this.y, that.y, eps);
+    }
+
+    private static boolean areClose(float x0, float x1, float eps) {
+        return Math.abs(x1 - x0) <= eps;
+    }
+
+    public Vector2 copy() {
         return new Vector2(this.x, this.y);
     }
 
