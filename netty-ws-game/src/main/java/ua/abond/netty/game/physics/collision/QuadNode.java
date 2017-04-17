@@ -6,7 +6,7 @@ import ua.abond.netty.game.physics.Rect;
 
 @Data
 @AllArgsConstructor
-class QuadNode<T> {
+public class QuadNode<T> {
     T element;
     Rect rect;
 }
