@@ -13,6 +13,7 @@
     </parent>
 
     <artifactId>netty-ws-game</artifactId>
+    <packaging>jar</packaging>
 
     <dependencies>
         <dependency>
@@ -25,7 +26,7 @@
     <build>
         <directory>target</directory>
         <outputDirectory>target/classes</outputDirectory>
-        <finalName>${project.artifactId}-${project.version}</finalName>
+        <finalName>target</finalName>
         <testOutputDirectory>target/test-classes</testOutputDirectory>
 
         <sourceDirectory>src/main/java</sourceDirectory>
