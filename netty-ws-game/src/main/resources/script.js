@@ -21,7 +21,7 @@
 
     var socket = new WebSocket(WS_URL);
     socket.onopen = function (e) {
-        joinGame('Test')
+        joinGame('Test' + Math.random());
     };
     canvas.addEventListener('click', function (event) {
         var x = event.pageX - canvas.offsetLeft,
