@@ -193,7 +193,7 @@ public class WebSocketServer {
 
     public static void main(String[] args) {
         int port = 8082;
-        String portStr = System.getProperty("PORT");
+        String portStr = System.getProperty("PORT", "8080");
         if (portStr != null) {
             try {
                 port = Integer.parseInt(portStr);
