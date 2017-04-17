@@ -17,15 +17,15 @@ public class QuadTree<T> {
 
     private List<QuadNode<T>> values;
 
-    public QuadTree(int x, int y, int w, int h) {
+    public QuadTree(float x, float y, float w, float h) {
         this(x, y, w, h, -1, 5);
     }
 
-    public QuadTree(int x, int y, int w, int h, int maxLevel, int loadFactor) {
+    public QuadTree(float x, float y, float w, float h, int maxLevel, int loadFactor) {
         this(new Rect(x, y, w, h), maxLevel, loadFactor);
     }
 
-    private QuadTree(int x, int y, int w, int h, int maxLevel, int loadFactor, int level) {
+    private QuadTree(float x, float y, float w, float h, int maxLevel, int loadFactor, int level) {
         this(new Rect(x, y, w, h), maxLevel, loadFactor, level);
     }
 
@@ -60,22 +60,24 @@ public class QuadTree<T> {
     public boolean remove(QuadNode<T> node) {
         Objects.requireNonNull(node, "Passed rect cannot be null.");
 
-        if (!contains(node)) {
-            return false;
-        }
-        if (nodes == null) {
-            if (values.isEmpty()) {
-                return false;
-            }
+        int index = getIndex(node.getRect());
+        if (index < 0) {
             return doRemove(node);
         }
-        for (int i = 0; i < nodes.length; i++) {
-            QuadTree<T> value = nodes[i];
-            if (value.contains(node)) {
-                return value.remove(node);
-            }
-        }
-        return false;
+        return nodes[index].remove(node);
+//        if (nodes == null) {
+//            if (values.isEmpty()) {
+//                return false;
+//            }
+//            return doRemove(node);
+//        }
+//        for (int i = 0; i < nodes.length; i++) {
+//            QuadTree<T> value = nodes[i];
+//            if (value.contains(node)) {
+//                return value.remove(node);
+//            }
+//        }
+//        return false;
     }
 
     public boolean update(QuadNode<T> oldValue, QuadNode<T> newValue) {
@@ -119,7 +121,7 @@ public class QuadTree<T> {
     private boolean doRemove(QuadNode<T> node) {
         for (int i = 0; i < values.size(); i++) {
             QuadNode<T> value = values.get(i);
-            if (node.equals(value)) {
+            if (node.getRect().equals(value.getRect())) {
                 values.remove(i);
                 return true;
             }
@@ -147,9 +149,9 @@ public class QuadTree<T> {
     }
 
     private void subdivide() {
-        int subWidth = Math.round(boundaries.getWidth() / 2f);
-        int subHeight = Math.round(boundaries.getHeight() / 2f);
-        if (subWidth == 1 || subHeight == 1)
+        float subWidth = boundaries.getWidth() / 2f;
+        float subHeight = boundaries.getHeight() / 2f;
+        if ((subWidth - 1f) <= 0.01f || (subHeight - 1f) <= 0.01f)
             return;
 
         nodes = new QuadTree[4];
