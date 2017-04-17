@@ -192,7 +192,15 @@ public class WebSocketServer {
     }
 
     public static void main(String[] args) {
-        new WebSocketServer(8082).start();
+        int port = 8082;
+        String portStr = System.getProperty("PORT");
+        if (portStr != null) {
+            try {
+                port = Integer.parseInt(portStr);
+            } catch (NumberFormatException ignore) {
+            }
+        }
+        new WebSocketServer(port).start();
     }
 
     private Vector2 randomPosition() {
