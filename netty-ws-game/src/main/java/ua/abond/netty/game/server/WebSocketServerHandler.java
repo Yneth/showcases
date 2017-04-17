@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import ua.abond.netty.game.ChannelMap;
 import ua.abond.netty.game.domain.Player;
 import ua.abond.netty.game.event.PlayerAddedMessage;
+import ua.abond.netty.game.event.PlayerDisconnectedMessage;
 import ua.abond.netty.game.physics.Vector2;
 import ua.abond.netty.game.event.Message;
 import ua.abond.netty.game.event.PlayerShootMessage;
@@ -38,7 +39,7 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
         Channel channel = ctx.channel();
-        playerMap.remove(channel);
+        eventBus.add(new PlayerDisconnectedMessage(channel));
     }
 
     @Override
