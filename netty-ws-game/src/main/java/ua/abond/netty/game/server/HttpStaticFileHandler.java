@@ -53,6 +53,7 @@ public class HttpStaticFileHandler extends SimpleChannelInboundHandler<FullHttpR
     private ChannelFuture handle(ChannelHandlerContext ctx, FullHttpRequest msg) {
         Channel channel = ctx.channel();
         String uri = msg.uri();
+        log.info("Handling request with uri {}", uri);
         if ("/".equals(uri)) {
             uri = "/index.html";
         }
@@ -85,6 +86,7 @@ public class HttpStaticFileHandler extends SimpleChannelInboundHandler<FullHttpR
     }
 
     private ChannelFuture sendError(Channel channel, HttpResponseStatus status) {
+        log.info("Failed to handle request with status {}", status);
         return channel.writeAndFlush(new DefaultFullHttpResponse(HTTP_1_1, status));
     }
 
