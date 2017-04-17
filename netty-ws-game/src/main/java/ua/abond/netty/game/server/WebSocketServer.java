@@ -200,6 +200,7 @@ public class WebSocketServer {
             } catch (NumberFormatException ignore) {
             }
         }
+        log.info("Starting application at {}", port);
         new WebSocketServer(port).start();
     }
 
