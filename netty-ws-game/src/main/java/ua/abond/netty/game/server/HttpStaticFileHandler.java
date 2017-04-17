@@ -5,6 +5,7 @@ import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.DefaultFullHttpResponse;
 import io.netty.handler.codec.http.DefaultHttpResponse;
 import io.netty.handler.codec.http.FullHttpRequest;
 import io.netty.handler.codec.http.HttpChunkedInput;
@@ -12,6 +13,7 @@ import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpResponse;
 import io.netty.handler.codec.http.HttpResponseStatus;
 import io.netty.handler.stream.ChunkedFile;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.activation.MimetypesFileTypeMap;
 import java.io.File;
@@ -35,6 +37,7 @@ import static io.netty.handler.codec.http.HttpResponseStatus.NOT_FOUND;
 import static io.netty.handler.codec.http.HttpResponseStatus.OK;
 import static io.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
+@Slf4j
 public class HttpStaticFileHandler extends SimpleChannelInboundHandler<FullHttpRequest> {
     private static final int HTTP_CACHE_SECONDS = 60;
     private static final String HTTP_DATE_GMT_TIMEZONE = "GMT";
@@ -43,45 +46,55 @@ public class HttpStaticFileHandler extends SimpleChannelInboundHandler<FullHttpR
     @Override
     protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg)
             throws Exception {
+        handle(ctx, msg)
+                .addListener(ChannelFutureListener.CLOSE);
+    }
+
+    private ChannelFuture handle(ChannelHandlerContext ctx, FullHttpRequest msg) {
         Channel channel = ctx.channel();
         String uri = msg.uri();
         if ("/".equals(uri)) {
             uri = "/index.html";
         }
+        if (uri.startsWith("/ua")) {
+            return sendError(channel, NOT_FOUND);
+        }
         if (!msg.method().equals(HttpMethod.GET)) {
-            sendError(channel, FORBIDDEN);
+            return sendError(channel, FORBIDDEN);
         }
 
-        URL resource = this.getClass().getResource(uri);
-        if (resource != null) {
-            File in = new File(resource.toURI());
-            HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
-            setContentTypeHeader(response, in);
-//            setDateAndCacheHeaders(response, in);
-            response.headers().set(TRANSFER_ENCODING, CHUNKED);
+        try {
+            URL resource = this.getClass().getResource(uri);
+            if (resource != null) {
+                File in = in = new File(resource.toURI());
 
-            ctx.write(response);
-            ctx.writeAndFlush(new HttpChunkedInput(new ChunkedFile(in)))
-                    .addListener(ChannelFutureListener.CLOSE);
-        } else {
-            sendError(channel, NOT_FOUND);
+                HttpResponse response = new DefaultHttpResponse(HTTP_1_1, OK);
+                setContentTypeHeader(response, in);
+//            setDateAndCacheHeaders(response, in);
+                response.headers().set(TRANSFER_ENCODING, CHUNKED);
+
+                ctx.write(response);
+                return ctx.writeAndFlush(new HttpChunkedInput(new ChunkedFile(in)));
+            } else {
+                return sendError(channel, NOT_FOUND);
+            }
+        } catch (Exception e) {
+            log.error("failed to execute.", e);
+            return sendError(channel, NOT_FOUND);
         }
     }
 
     private ChannelFuture sendError(Channel channel, HttpResponseStatus status) {
-        return channel.write(new DefaultHttpResponse(HTTP_1_1, status))
-                .addListener(ChannelFutureListener.CLOSE);
+        return channel.writeAndFlush(new DefaultFullHttpResponse(HTTP_1_1, status));
     }
 
     private static void setDateAndCacheHeaders(HttpResponse response, File fileToCache) {
         SimpleDateFormat dateFormatter = new SimpleDateFormat(HTTP_DATE_FORMAT, Locale.US);
         dateFormatter.setTimeZone(TimeZone.getTimeZone(HTTP_DATE_GMT_TIMEZONE));
 
-        // Date header
         Calendar time = new GregorianCalendar();
         response.headers().set(DATE, dateFormatter.format(time.getTime()));
 
-        // Add cache headers
         time.add(Calendar.SECOND, HTTP_CACHE_SECONDS);
         response.headers().set(EXPIRES, dateFormatter.format(time.getTime()));
         response.headers().set(CACHE_CONTROL, "private, max-age=" + HTTP_CACHE_SECONDS);
