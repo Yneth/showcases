@@ -9,11 +9,11 @@ import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import lombok.extern.slf4j.Slf4j;
 import ua.abond.netty.game.ChannelMap;
 import ua.abond.netty.game.domain.Player;
+import ua.abond.netty.game.event.Message;
 import ua.abond.netty.game.event.PlayerAddedMessage;
 import ua.abond.netty.game.event.PlayerDisconnectedMessage;
-import ua.abond.netty.game.physics.Vector2;
-import ua.abond.netty.game.event.Message;
 import ua.abond.netty.game.event.PlayerShootMessage;
+import ua.abond.netty.game.physics.Vector2;
 
 import java.security.SecureRandom;
 import java.util.Queue;
@@ -62,6 +62,9 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
                 String[] positionPair = command.split(":")[1].split(",");
                 Player currentPlayer = playerMap.get(channel);
 
+                if (currentPlayer == null) {
+                    return;
+                }
                 currentPlayer.setTarget(
                         Vector2.builder()
                                 .x(Integer.parseInt(positionPair[0]))
