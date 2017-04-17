@@ -1,6 +1,7 @@
 (function () {
     'use strict';
-    var WS_URL = 'wss://' + location.hostname + (location.port ? ':' + location.port: '') + '/ws';
+    var WS_PROTOCOL = location.protocol === 'https:' ? 'wss' : 'ws';
+    var WS_URL = WS_PROTOCOL + '://' + location.hostname + (location.port ? ':' + location.port: '') + '/ws';
     var canvas = document.getElementById('canvas');
     var buffer = document.createElement('canvas');
 
