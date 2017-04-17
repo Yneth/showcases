@@ -1,7 +1,6 @@
 (function () {
     'use strict';
-    var WS_URL = 'ws://localhost:8082/ws';
-
+    var WS_URL = 'ws://' + location.hostname + (location.port ? ':' + location.port: '') + '/ws';
     var canvas = document.getElementById('canvas');
     var buffer = document.createElement('canvas');
 
