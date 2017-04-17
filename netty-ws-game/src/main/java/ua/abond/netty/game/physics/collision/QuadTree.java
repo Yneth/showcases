@@ -88,6 +88,10 @@ public class QuadTree<T> {
         return doQuery(that, new ArrayList<>());
     }
 
+    public void query(Rect rect, List<QuadNode<T>> out) {
+        doQuery(rect, out);
+    }
+
     private List<QuadNode<T>> doQuery(Rect that, List<QuadNode<T>> result) {
         int index = getIndex(that);
         if (index < 0) {
