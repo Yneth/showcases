@@ -50,6 +50,10 @@ public class Vector2 {
         return (float) Math.sqrt(x * x + y * y);
     }
 
+    public float squareMagnitude() {
+        return x * x + y * y;
+    }
+
     public boolean isCloseTo(Vector2 that) {
         return isCloseTo(that, 0.001f);
     }
