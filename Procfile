@@ -1,2 +1,2 @@
-web: java $JAVA_OPTS -cp "netty-ws-game/target/classes:netty-ws-game/target/dependency/*" ua.abond.netty.game.server.WebSocketServer -Dport=$PORT
-local-web: java -cp "netty-ws-game/target/classes;netty-ws-game/target/dependency/*" ua.abond.netty.game.server.WebSocketServer -Dport=8080
+web: java $JAVA_OPTS -cp "netty-ws-game/target/classes:netty-ws-game/target/dependency/*" -Dport=$PORT ua.abond.netty.game.server.WebSocketServer
+local-web: java -cp "netty-ws-game/target/classes;netty-ws-game/target/dependency/*" -Dport=8080 ua.abond.netty.game.server.WebSocketServer
