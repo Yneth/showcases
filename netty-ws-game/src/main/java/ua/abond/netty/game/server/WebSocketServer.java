@@ -14,6 +14,9 @@ import io.netty.handler.codec.http.HttpServerCodec;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
+import io.netty.handler.ssl.SslContext;
+import io.netty.handler.ssl.SslContextBuilder;
+import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.handler.stream.ChunkedWriteHandler;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,13 +27,16 @@ import ua.abond.netty.game.event.Message;
 import ua.abond.netty.game.event.PlayerAddedMessage;
 import ua.abond.netty.game.event.PlayerDisconnectedMessage;
 import ua.abond.netty.game.event.PlayerShootMessage;
+import ua.abond.netty.game.exception.ApplicationStartupException;
 import ua.abond.netty.game.physics.Collider;
 import ua.abond.netty.game.physics.Vector2;
 import ua.abond.netty.game.physics.collision.QuadNode;
 import ua.abond.netty.game.physics.collision.QuadTree;
 import ua.abond.netty.game.thread.VerboseRunnable;
 
+import javax.net.ssl.SSLException;
 import java.security.SecureRandom;
+import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
@@ -42,6 +48,8 @@ import java.util.stream.Collectors;
 
 @Slf4j
 public class WebSocketServer {
+    static final boolean SSL = System.getProperty("ssl") != null;
+
     private static final String WEBSOCKET_URI = "/ws";
     private final Random random = new SecureRandom();
 
@@ -164,10 +172,16 @@ public class WebSocketServer {
             channelMap.writeAndFlush(new TextWebSocketFrame("0:" + userPositions + "|" + bulletPositions));
         }), 0, 33, TimeUnit.MILLISECONDS);
 
+        final SslContext sslCtx = getSslContext();
+
+
         bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
                 ChannelPipeline pipeline = ch.pipeline();
+                if (sslCtx != null) {
+                    pipeline.addLast(sslCtx.newHandler(ch.alloc()));
+                }
                 pipeline.addLast(new HttpServerCodec());
                 pipeline.addLast(new HttpObjectAggregator(65536));
                 pipeline.addLast(new WebSocketServerCompressionHandler());
@@ -202,6 +216,25 @@ public class WebSocketServer {
         }
         log.info("Starting application at {}", port);
         new WebSocketServer(port).start();
+    }
+
+    private SslContext getSslContext() {
+        if (SSL) {
+            SelfSignedCertificate ssc = null;
+            try {
+                ssc = new SelfSignedCertificate();
+            } catch (CertificateException e) {
+                throw new ApplicationStartupException("Failed to retrieve certificate", e);
+            }
+            try {
+                if (ssc != null) {
+                    return SslContextBuilder.forServer(ssc.certificate(), ssc.privateKey()).build();
+                }
+            } catch (SSLException e) {
+                throw new ApplicationStartupException("Failed to build sslContext", e);
+            }
+        }
+        return null;
     }
 
     private Vector2 randomPosition() {
