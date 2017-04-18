@@ -151,8 +151,8 @@ public class GameLoop implements Runnable {
 
     private Vector2 generateRandomPosition() {
         return Vector2.builder()
-                .x(random.nextInt(100))
-                .y(random.nextInt(100))
+                .x(random.nextInt(1000))
+                .y(random.nextInt(1000))
                 .build();
     }
 }
