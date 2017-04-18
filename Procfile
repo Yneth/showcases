@@ -1,2 +1,2 @@
-web: mvn -f netty-ws-game/pom.xml exec:java -Djvm.options=$JAVA_OPTS -Dport=$PORT -P master
-local-web: mvn -f netty-ws-game/pom.xml exec:java -Dport=8082 -P dev
+web: java $JAVA_OPTS -cp "netty-ws-game/target/classes:netty-ws-game/src/main/profiles/master/*:netty-ws-game/target/dependency/*" -Dport=$PORT ua.abond.netty.game.server.WebSocketServer
+local-web: java -cp "netty-ws-game/target/classes;netty-ws-game/target/dependency/*" -Dport=8080 ua.abond.netty.game.server.WebSocketServer
