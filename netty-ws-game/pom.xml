@@ -28,6 +28,28 @@
         </dependency>
     </dependencies>
 
+    <profiles>
+        <profile>
+            <id>master</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <profile.folder>master</profile.folder>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>dev</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <properties>
+                <profile.folder>dev</profile.folder>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <directory>target</directory>
         <outputDirectory>target/classes</outputDirectory>
@@ -39,6 +61,9 @@
             <resource>
                 <directory>src/main/resources</directory>
             </resource>
+            <resource>
+                <directory>src/main/profiles/${profile.folder}</directory>
+            </resource>
         </resources>
 
         <testSourceDirectory>src/test/java</testSourceDirectory>
@@ -47,5 +72,15 @@
                 <directory>src/test/resources</directory>
             </testResource>
         </testResources>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <configuration>
+                    <mainClass>ua.abond.netty.game.server.WebSocketServer</mainClass>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
 </project>
