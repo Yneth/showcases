@@ -25,8 +25,11 @@
         joinGame('Test' + Math.random());
     };
     canvas.addEventListener('click', function (event) {
-        var x = event.pageX - canvas.offsetLeft - 10,
-            y = event.pageY - canvas.offsetTop - 10;
+        // http://www.html5canvastutorials.com/advanced/html5-canvas-mouse-coordinates/
+        var rect = canvas.getBoundingClientRect();
+        var x = Math.round((event.clientX - rect.left) / (rect.right - rect.left) * canvasWidth),
+            y = Math.round((event.clientY - rect.top) / (rect.bottom - rect.top) * canvasHeight);
+
         x = x + (cameraScale / 2) - (cameraScale / 2); // add camera pos AND subtract viewport offset
         x = x / (cameraScale * 2); // divide by viewport size IE normalize
         x = Math.round(x * 1000); // multiply to server coords
@@ -50,7 +53,7 @@
                 bullets = [];
                 userPositions.forEach(function (p) {
                     var coords = p.split(',');
-                    
+
                     var x = coords[0] / 1000; // normalize
                     x = x * 2 * cameraScale; // to world viewport size
                     x = x - (cameraScale / 2); // to camera pos
