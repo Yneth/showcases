@@ -15,7 +15,8 @@
     buffer.height = document.body.clientHeight;
 
     var canvasWidth = canvas.width,
-        canvasHeight = canvas.height;
+        canvasHeight = canvas.height,
+        cameraScale = Math.min(canvasWidth, canvasHeight);
 
     var ctx = canvas.getContext('2d');
 
@@ -24,8 +25,15 @@
         joinGame('Test' + Math.random());
     };
     canvas.addEventListener('click', function (event) {
-        var x = event.pageX - canvas.offsetLeft,
-            y = event.pageY - canvas.offsetTop;
+        var x = event.pageX - canvas.offsetLeft - 10,
+            y = event.pageY - canvas.offsetTop - 10;
+        x = x + (cameraScale / 2) - (cameraScale / 2); // add camera pos AND subtract viewport offset
+        x = x / (cameraScale * 2); // divide by viewport size IE normalize
+        x = Math.round(x * 1000); // multiply to server coords
+        y = y + (cameraScale / 2) - (cameraScale / 2);
+        y = y / (cameraScale * 2);
+        y = Math.round(y * 1000);
+        console.log(x + ' ' + y);
         sendPosition(x, y);
     }, false);
 
@@ -42,7 +50,19 @@
                 bullets = [];
                 userPositions.forEach(function (p) {
                     var coords = p.split(',');
-                    users.push({'x': coords[0], 'y': coords[1]});
+                    
+                    var x = coords[0] / 1000; // normalize
+                    x = x * 2 * cameraScale; // to world viewport size
+                    x = x - (cameraScale / 2); // to camera pos
+                    x = x + (cameraScale / 2); // add viewport offset
+
+                    var y = coords[1] / 1000; // normalize
+                    y = y * 2 * cameraScale; // to world viewport size
+                    y = y - (cameraScale / 2); // to camera pos
+                    y = y + (cameraScale / 2); // add viewport offset
+                    console.log(coords);
+                    console.log(x + ',' + y);
+                    users.push({'x': x, 'y': y});
                 });
                 bulletPositions.forEach(function (b) {
                     var coords = b.split(',');
