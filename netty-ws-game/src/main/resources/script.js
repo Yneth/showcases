@@ -22,7 +22,7 @@
 
     var socket = new WebSocket(WS_URL);
     socket.onopen = function (e) {
-        joinGame('Test' + Math.random());
+        joinGame('Test' + Math.random() * 100);
     };
     canvas.addEventListener('click', function (event) {
         // http://www.html5canvastutorials.com/advanced/html5-canvas-mouse-coordinates/
