@@ -2,8 +2,6 @@ package ua.abond.netty.game.exception;
 
 public class ApplicationStartupException extends RuntimeException {
 
-
-
     public ApplicationStartupException(String message) {
         super(message);
     }
