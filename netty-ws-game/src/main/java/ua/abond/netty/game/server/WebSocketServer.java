@@ -1,6 +1,9 @@
 package ua.abond.netty.game.server;
 
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.ByteBufUtil;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelPipeline;
@@ -11,6 +14,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
@@ -18,6 +22,7 @@ import io.netty.handler.ssl.SslContext;
 import io.netty.handler.ssl.SslContextBuilder;
 import io.netty.handler.ssl.util.SelfSignedCertificate;
 import io.netty.handler.stream.ChunkedWriteHandler;
+import io.netty.util.CharsetUtil;
 import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.extern.slf4j.Slf4j;
 import ua.abond.netty.game.ChannelMap;
@@ -32,8 +37,10 @@ import ua.abond.netty.game.thread.VerboseRunnable;
 import javax.net.ssl.SSLException;
 import java.security.SecureRandom;
 import java.security.cert.CertificateException;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executors;
@@ -52,6 +59,7 @@ public class WebSocketServer {
     private final List<Bullet> bullets;
     private final ChannelMap<Player> channelMap;
     private final ConcurrentLinkedQueue<Message> eventBus;
+    private final Queue<Message> outgoingMessages = new ArrayDeque<>();
 
     public WebSocketServer(int port) {
         this.port = port;
@@ -71,11 +79,15 @@ public class WebSocketServer {
                 .group(master, slave);
         executorService.scheduleAtFixedRate(
                 new VerboseRunnable(
-                        new GameLoop(bullets, channelMap, eventBus)
+                        new GameLoop(bullets, channelMap, eventBus, outgoingMessages)
                 ), 0, 17, TimeUnit.MILLISECONDS
         );
 
         executorService.scheduleAtFixedRate(new VerboseRunnable(() -> {
+            while (!outgoingMessages.isEmpty()) {
+                Message poll = outgoingMessages.poll();
+                channelMap.writeAndFlush(new BinaryWebSocketFrame(Unpooled.directBuffer(1).setBytes()));
+            }
             String userPositions = channelMap.values().stream()
                     .map(Player::getPosition)
                     .map(pos -> pos.getX() + "," + pos.getY())

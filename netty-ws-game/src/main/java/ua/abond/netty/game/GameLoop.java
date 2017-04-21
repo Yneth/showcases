@@ -16,6 +16,7 @@ import ua.abond.netty.game.physics.collision.QuadTree;
 import java.security.SecureRandom;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Queue;
 import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -27,10 +28,13 @@ public class GameLoop implements Runnable {
     private final List<Wall> walls = new ArrayList<>();
     private QuadTree<Collider> quadTree = new QuadTree<>(-10, -10, 1020, 1020, 10, 1);
 
-    public GameLoop(List<Bullet> bullets, ChannelMap<Player> channelMap, ConcurrentLinkedQueue<Message> eventBus) {
+    private final Queue<Message> outgoingMessages;
+
+    public GameLoop(List<Bullet> bullets, ChannelMap<Player> channelMap, ConcurrentLinkedQueue<Message> eventBus, Queue<Message> outgoingMessages) {
         this.bullets = bullets;
         this.channelMap = channelMap;
         this.eventBus = eventBus;
+        this.outgoingMessages = outgoingMessages;
     }
 
     @Override
