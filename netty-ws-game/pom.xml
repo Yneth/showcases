@@ -31,6 +31,9 @@
     <profiles>
         <profile>
             <id>master</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
             <properties>
                 <profile.folder>master</profile.folder>
             </properties>
