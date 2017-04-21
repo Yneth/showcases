@@ -3,6 +3,7 @@ package ua.abond.netty.game;
 import io.netty.channel.ChannelId;
 import ua.abond.netty.game.domain.Bullet;
 import ua.abond.netty.game.domain.Player;
+import ua.abond.netty.game.domain.Wall;
 import ua.abond.netty.game.event.Message;
 import ua.abond.netty.game.event.PlayerAddedMessage;
 import ua.abond.netty.game.event.PlayerDisconnectedMessage;
@@ -23,6 +24,7 @@ public class GameLoop implements Runnable {
     private final List<Bullet> bullets;
     private final ChannelMap<Player> channelMap;
     private final ConcurrentLinkedQueue<Message> eventBus;
+    private final List<Wall> walls = new ArrayList<>();
     private QuadTree<Collider> quadTree = new QuadTree<>(-10, -10, 1020, 1020, 10, 1);
 
     public GameLoop(List<Bullet> bullets, ChannelMap<Player> channelMap, ConcurrentLinkedQueue<Message> eventBus) {
