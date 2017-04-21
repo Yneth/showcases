@@ -65,19 +65,6 @@ public class QuadTree<T> {
             return doRemove(node);
         }
         return nodes[index].remove(node);
-//        if (nodes == null) {
-//            if (values.isEmpty()) {
-//                return false;
-//            }
-//            return doRemove(node);
-//        }
-//        for (int i = 0; i < nodes.length; i++) {
-//            QuadTree<T> value = nodes[i];
-//            if (value.contains(node)) {
-//                return value.remove(node);
-//            }
-//        }
-//        return false;
     }
 
     public boolean update(QuadNode<T> oldValue, QuadNode<T> newValue) {
