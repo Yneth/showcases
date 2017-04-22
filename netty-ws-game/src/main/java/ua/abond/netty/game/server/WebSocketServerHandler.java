@@ -49,34 +49,27 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
         } else if (msg instanceof BinaryWebSocketFrame) {
             ByteBuf content = msg.content();
             int commandId = content.readByte();
-            switch (commandId) {
-                case 0: {
-                    int x = content.readShort();
-                    int y = content.readShort();
-                    Player currentPlayer = playerMap.get(ctx.channel());
+            if (commandId == 0) {
+                int x = content.readShort();
+                int y = content.readShort();
+                Player currentPlayer = playerMap.get(ctx.channel());
 
-                    if (currentPlayer == null) {
-                        return;
-                    }
-                    currentPlayer.setTarget(
-                            Vector2.builder()
-                                    .x(x)
-                                    .y(y)
-                                    .build()
-                    );
-                    break;
+                if (currentPlayer == null) {
+                    return;
                 }
-                case 1: {
-                    eventBus.add(new PlayerShootMessage(ctx.channel()));
-                    break;
-                }
-                case 100: {
-                    byte[] array = new byte[21];
-                    content.readBytes(array);
-                    String nickname = new String(array, "UTF-8");
-                    eventBus.add(new PlayerAddedMessage(ctx.channel(), nickname));
-                    break;
-                }
+                currentPlayer.setTarget(
+                        Vector2.builder()
+                                .x(x)
+                                .y(y)
+                                .build()
+                );
+            } else if (commandId == 1) {
+                eventBus.add(new PlayerShootMessage(ctx.channel()));
+            } else if (commandId == 100) {
+                byte[] array = new byte[21];
+                content.readBytes(array);
+                String nickname = new String(array, "UTF-8");
+                eventBus.add(new PlayerAddedMessage(ctx.channel(), nickname));
             }
         }
     }

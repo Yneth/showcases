@@ -37,6 +37,7 @@ public class GameLoop implements Runnable {
 
         WallBulletCollisionHandler handler = (w, b) -> {
             bullets.remove(b);
+            quadTree.remove(Bullet.toQuadNode(b));
         };
         Wall wall = new Wall(new Vector2(250, 250), 300, 5);
         wall.setCollisionHandler(handler);
