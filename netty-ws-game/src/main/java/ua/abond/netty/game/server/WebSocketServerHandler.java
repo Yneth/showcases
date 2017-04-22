@@ -7,7 +7,6 @@ import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
-import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import lombok.extern.slf4j.Slf4j;
 import ua.abond.netty.game.ChannelMap;
@@ -47,34 +46,6 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
             throws Exception {
         if (msg instanceof PingWebSocketFrame) {
             ctx.writeAndFlush(new PongWebSocketFrame());
-        } else if (msg instanceof TextWebSocketFrame) {
-            String command = ((TextWebSocketFrame) msg).text();
-            Channel channel = ctx.channel();
-            if (command.startsWith("join:")) {
-                String nickname = command.substring(5);
-                eventBus.add(new PlayerAddedMessage(channel, nickname));
-            } else if (command.startsWith("leave:")) {
-                playerMap.remove(channel);
-            } else if (command.startsWith("message:")) {
-                String message = command.substring(8);
-                playerMap.writeAndFlush(new TextWebSocketFrame(message));
-            } else if (command.startsWith("0:")) {
-                String[] positionPair = command.split(":")[1].split(",");
-                Player currentPlayer = playerMap.get(channel);
-
-                if (currentPlayer == null) {
-                    return;
-                }
-                currentPlayer.setTarget(
-                        Vector2.builder()
-                                .x(Integer.parseInt(positionPair[0]))
-                                .y(Integer.parseInt(positionPair[1]))
-                                .build()
-                );
-                playerMap.put(channel, currentPlayer);
-            } else if (command.startsWith("1:")) {
-                eventBus.add(new PlayerShootMessage(channel));
-            }
         } else if (msg instanceof BinaryWebSocketFrame) {
             ByteBuf content = msg.content();
             int commandId = content.readByte();
