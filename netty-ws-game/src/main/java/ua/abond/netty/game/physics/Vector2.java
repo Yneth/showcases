@@ -11,16 +11,34 @@ public class Vector2 {
     public static final Vector2 ZERO = new Vector2(0f, 0f);
     public static final Vector2 ONE = new Vector2(1f, 1f);
 
+    public static final Vector2 UP = new Vector2(0f, -1f);
+    public static final Vector2 DOWN = new Vector2(0f, 1f);
+    public static final Vector2 RIGHT = new Vector2(1f, 0f);
+    public static final Vector2 LEFT = new Vector2(-1f, 0f);
+
     private float x;
     private float y;
 
-    public Vector2 add(Vector2 that) {
+    public float dot(final Vector2 that) {
+        return this.x * that.x + this.x * that.x;
+    }
+
+    public Vector2 project(final Vector2 that) {
+        float dot = this.dot(that);
+        float sqrMag = that.squareMagnitude();
+
+        this.x = (dot / sqrMag) * that.x;
+        this.y = (dot / sqrMag) * that.y;
+        return this;
+    }
+
+    public Vector2 add(final Vector2 that) {
         this.x += that.x;
         this.y += that.y;
         return this;
     }
 
-    public Vector2 minus(Vector2 that) {
+    public Vector2 minus(final Vector2 that) {
         return negate().add(that);
     }
 
