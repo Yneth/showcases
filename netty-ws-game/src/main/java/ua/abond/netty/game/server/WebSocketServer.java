@@ -26,6 +26,7 @@ import ua.abond.netty.game.ChannelMap;
 import ua.abond.netty.game.GameLoop;
 import ua.abond.netty.game.domain.Bullet;
 import ua.abond.netty.game.domain.Player;
+import ua.abond.netty.game.domain.Wall;
 import ua.abond.netty.game.event.Message;
 import ua.abond.netty.game.exception.ApplicationStartupException;
 import ua.abond.netty.game.physics.Vector2;
@@ -52,6 +53,7 @@ public class WebSocketServer {
 
     private final int port;
     private final List<Bullet> bullets;
+    private final List<Wall> walls;
     private final ChannelMap<Player> channelMap;
     private final ConcurrentLinkedQueue<Message> eventBus;
     private final Queue<Message> outgoingMessages = new ArrayDeque<>();
@@ -59,6 +61,7 @@ public class WebSocketServer {
     public WebSocketServer(int port) {
         this.port = port;
         this.bullets = new ArrayList<>();
+        this.walls = new ArrayList<>();
         this.channelMap = new ChannelMap<>(new DefaultChannelGroup(GlobalEventExecutor.INSTANCE));
         this.eventBus = new ConcurrentLinkedQueue<>();
     }
@@ -74,7 +77,7 @@ public class WebSocketServer {
                 .group(master, slave);
         executorService.scheduleAtFixedRate(
                 new VerboseRunnable(
-                        new GameLoop(bullets, channelMap, eventBus, outgoingMessages)
+                        new GameLoop(bullets, channelMap, eventBus, walls)
                 ), 0, 17, TimeUnit.MILLISECONDS
         );
 
@@ -88,10 +91,18 @@ public class WebSocketServer {
                 buf.writeShort((int) (position.getX() * 10));
                 buf.writeShort((int) (position.getY() * 10));
             }
+            buf.writeShort(bullets.size());
             for (Bullet bullet : bullets) {
                 Vector2 position = bullet.getPosition();
                 buf.writeShort((int) (position.getX() * 10));
                 buf.writeShort((int) (position.getY() * 10));
+            }
+            for (Wall wall : walls) {
+                Vector2 position = wall.getPosition();
+                buf.writeShort((int) (position.getX() * 10));
+                buf.writeShort((int) (position.getY() * 10));
+                buf.writeShort(wall.getWidth() * 10);
+                buf.writeShort(wall.getHeight() * 10);
             }
             channelMap.writeAndFlush(new BinaryWebSocketFrame(buf));
         }), 0, 33, TimeUnit.MILLISECONDS);

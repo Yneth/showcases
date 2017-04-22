@@ -1,16 +1,20 @@
 package ua.abond.netty.game.domain;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ua.abond.netty.game.physics.Collider;
+import ua.abond.netty.game.physics.Rect;
 import ua.abond.netty.game.physics.Vector2;
+import ua.abond.netty.game.physics.collision.QuadNode;
 
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 public class Wall implements Collider {
+    private Vector2 center;
     private int width;
     private int height;
-    private Vector2 center;
 
     @Override
     public boolean collides(Collider that) {
@@ -63,5 +67,18 @@ public class Wall implements Collider {
     @Override
     public String getMark() {
         return "wall";
+    }
+
+    public static QuadNode<Collider> toQuadNode(Wall wall) {
+        Vector2 position = wall.getPosition();
+        return new QuadNode<>(
+                wall,
+                new Rect(
+                        position.getX(),
+                        position.getY(),
+                        wall.getWidth(),
+                        wall.getHeight()
+                )
+        );
     }
 }
