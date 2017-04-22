@@ -1,6 +1,5 @@
 package ua.abond.netty.game.domain;
 
-import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ua.abond.netty.game.physics.Collider;
@@ -10,11 +9,18 @@ import ua.abond.netty.game.physics.collision.QuadNode;
 
 @Data
 @NoArgsConstructor
-@AllArgsConstructor
 public class Wall implements Collider {
     private Vector2 center;
     private int width;
     private int height;
+
+    private WallBulletCollisionHandler collisionHandler;
+
+    public Wall(Vector2 center, int width, int height) {
+        this.center = center;
+        this.width = width;
+        this.height = height;
+    }
 
     @Override
     public boolean collides(Collider that) {
@@ -25,8 +31,12 @@ public class Wall implements Collider {
     }
 
     private boolean collidesWithCircle(Collider that) {
-        float distX = Math.abs(that.getPosition().getX() - center.getX() - width * 0.5f);
-        float distY = Math.abs(that.getPosition().getY() - center.getY() - height * 0.5f);
+        // get upper left corner coordinates
+        float x = center.getX() - width * 0.5f;
+        float y = center.getY() - height * 0.5f;
+
+        float distX = Math.abs(that.getPosition().getX() - x - width * 0.5f);
+        float distY = Math.abs(that.getPosition().getY() - y - height * 0.5f);
         if (distX > (width + that.width()) * 0.5f) {
             return false;
         }
@@ -46,7 +56,12 @@ public class Wall implements Collider {
 
     @Override
     public void onCollision(Collider that) {
+        if ("bullet".equals(that.getMark())) {
+            if (collisionHandler == null)
+                return;
 
+            collisionHandler.onCollision(this, (Bullet) that);
+        }
     }
 
     @Override

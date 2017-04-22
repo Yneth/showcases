@@ -4,6 +4,7 @@ import io.netty.channel.ChannelId;
 import ua.abond.netty.game.domain.Bullet;
 import ua.abond.netty.game.domain.Player;
 import ua.abond.netty.game.domain.Wall;
+import ua.abond.netty.game.domain.WallBulletCollisionHandler;
 import ua.abond.netty.game.event.Message;
 import ua.abond.netty.game.event.PlayerAddedMessage;
 import ua.abond.netty.game.event.PlayerDisconnectedMessage;
@@ -33,10 +34,19 @@ public class GameLoop implements Runnable {
         this.channelMap = channelMap;
         this.eventBus = eventBus;
         this.walls = walls;
-        this.walls.add(new Wall(new Vector2(250, 250), 400, 10));
-        this.walls.add(new Wall(new Vector2(250, 250), 10, 400));
-        this.quadTree.add(Wall.toQuadNode(walls.get(0)));
-        this.quadTree.add(Wall.toQuadNode(walls.get(1)));
+
+        WallBulletCollisionHandler handler = (w, b) -> {
+            bullets.remove(b);
+        };
+        Wall wall = new Wall(new Vector2(250, 250), 300, 5);
+        wall.setCollisionHandler(handler);
+        this.walls.add(wall);
+        this.quadTree.add(Wall.toQuadNode(wall));
+
+        Wall wall1 = new Wall(new Vector2(250, 250), 5, 300);
+        wall1.setCollisionHandler(handler);
+        this.walls.add(wall1);
+        this.quadTree.add(Wall.toQuadNode(wall1));
     }
 
     @Override
@@ -154,6 +164,18 @@ public class GameLoop implements Runnable {
                 }
             }
             nodes.clear();
+        }
+        for (int i = 0; i < walls.size(); i++) {
+            Wall wall = walls.get(i);
+            QuadNode<Collider> node = Wall.toQuadNode(wall);
+            quadTree.query(node.getRect(), nodes);
+
+            for (QuadNode<Collider> other : nodes) {
+                Collider that = other.getElement();
+                if (!that.equals(wall) && wall.collides(that)) {
+                    wall.onCollision(that);
+                }
+            }
         }
     }
 

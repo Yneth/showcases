@@ -22,8 +22,7 @@ public class Bullet implements Collider {
     public boolean collides(Collider that) {
         if ("wall".equals(that.getMark())) {
             return that.collides(this);
-        }
-        else if ("bullet".equals(that.getMark())) {
+        } else if ("bullet".equals(that.getMark())) {
             return position.copy().add(that.getPosition().copy().negate()).squareMagnitude() <= 100f;
         }
         return position.copy().add(that.getPosition().copy().negate()).squareMagnitude() <= 625f;
@@ -31,7 +30,6 @@ public class Bullet implements Collider {
 
     @Override
     public void onCollision(Collider that) {
-
     }
 
     @Override

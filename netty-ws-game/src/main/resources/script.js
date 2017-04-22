@@ -69,8 +69,9 @@
             var height = sh2int(data[i + 6], data[i + 7]);
 
             var wall = toViewport(x, y);
-            wall.width = width / 10;
-            wall.height = height / 10;
+            var bounds = toViewport(width, height);
+            wall.width = bounds.x;
+            wall.height = bounds.y;
             walls.push(wall);
         }
     };
