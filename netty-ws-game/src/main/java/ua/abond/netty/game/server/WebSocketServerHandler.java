@@ -68,6 +68,7 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
                 }
                 case 1: {
                     eventBus.add(new PlayerShootMessage(ctx.channel()));
+                    break;
                 }
                 case 100: {
                     byte[] array = new byte[21];
