@@ -159,7 +159,6 @@ public class GameLoop implements Runnable {
             for (QuadNode<Collider> other : nodes) {
                 Collider object = other.getElement();
                 if (!object.equals(player) && player.collides(object)) {
-                    object.onCollision(player);
                     player.onCollision(object);
                 }
             }
