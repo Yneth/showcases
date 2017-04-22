@@ -1,9 +1,12 @@
 package ua.abond.netty.game.server;
 
+import io.netty.buffer.ByteBuf;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.PingWebSocketFrame;
+import io.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketFrame;
 import lombok.extern.slf4j.Slf4j;
@@ -43,7 +46,7 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
     protected void channelRead0(ChannelHandlerContext ctx, WebSocketFrame msg)
             throws Exception {
         if (msg instanceof PingWebSocketFrame) {
-            log.warn("ping");
+            ctx.writeAndFlush(new PongWebSocketFrame());
         } else if (msg instanceof TextWebSocketFrame) {
             String command = ((TextWebSocketFrame) msg).text();
             Channel channel = ctx.channel();
@@ -69,15 +72,40 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
                                 .build()
                 );
                 playerMap.put(channel, currentPlayer);
-
-                playerMap.writeAndFlush(new TextWebSocketFrame(currentPlayer.toString()));
             } else if (command.startsWith("1:")) {
                 eventBus.add(new PlayerShootMessage(channel));
             }
-        }
-    }
+        } else if (msg instanceof BinaryWebSocketFrame) {
+            ByteBuf content = msg.content();
+            int commandId = content.readByte();
+            switch (commandId) {
+                case 0: {
+                    int x = content.readShort();
+                    int y = content.readShort();
+                    Player currentPlayer = playerMap.get(ctx.channel());
 
-    private Vector2 randomPosition() {
-        return Vector2.builder().x(random.nextInt(500)).y(random.nextInt(500)).build();
+                    if (currentPlayer == null) {
+                        return;
+                    }
+                    currentPlayer.setTarget(
+                            Vector2.builder()
+                                    .x(x)
+                                    .y(y)
+                                    .build()
+                    );
+                    break;
+                }
+                case 1: {
+                    eventBus.add(new PlayerShootMessage(ctx.channel()));
+                }
+                case 100: {
+                    byte[] array = new byte[21];
+                    content.readBytes(array);
+                    String nickname = new String(array, "UTF-8");
+                    eventBus.add(new PlayerAddedMessage(ctx.channel(), nickname));
+                    break;
+                }
+            }
+        }
     }
 }

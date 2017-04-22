@@ -79,20 +79,21 @@ public class WebSocketServer {
         );
 
         executorService.scheduleAtFixedRate(new VerboseRunnable(() -> {
-            while (!outgoingMessages.isEmpty()) {
-                Message poll = outgoingMessages.poll();
-                channelMap.writeAndFlush(new BinaryWebSocketFrame(Unpooled.directBuffer(1).setBytes()));
+            ByteBuf buf = PooledByteBufAllocator.DEFAULT.directBuffer();
+            buf.writeByte(0);
+            buf.writeByte(1);
+            buf.writeByte(channelMap.values().size());
+            for (Player player : channelMap.values()) {
+                Vector2 position = player.getPosition();
+                buf.writeShort((int) (position.getX() * 10));
+                buf.writeShort((int) (position.getY() * 10));
             }
-            String userPositions = channelMap.values().stream()
-                    .map(Player::getPosition)
-                    .map(pos -> pos.getX() + "," + pos.getY())
-                    .collect(Collectors.joining(";"));
-            String bulletPositions = bullets.stream()
-                    .map(Bullet::getPosition)
-                    .map(pos -> pos.getX() + "," + pos.getY())
-                    .collect(Collectors.joining(";"));
-
-            channelMap.writeAndFlush(new TextWebSocketFrame("0:" + userPositions + "|" + bulletPositions));
+            for (Bullet bullet : bullets) {
+                Vector2 position = bullet.getPosition();
+                buf.writeShort((int) (position.getX() * 10));
+                buf.writeShort((int) (position.getY() * 10));
+            }
+            channelMap.writeAndFlush(new BinaryWebSocketFrame(buf));
         }), 0, 33, TimeUnit.MILLISECONDS);
 
         final SslContext sslCtx = getSslContext();
