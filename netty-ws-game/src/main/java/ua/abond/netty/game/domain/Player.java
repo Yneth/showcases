@@ -27,7 +27,10 @@ public class Player implements Collider {
 
     @Override
     public boolean collides(Collider that) {
-        if (that.getMark().equals("bullet")) {
+        if ("wall".equals(that.getMark())) {
+            return that.collides(this);
+        }
+        else if ("bullet".equals(that.getMark())) {
             return position.copy().add(that.getPosition().copy().negate()).squareMagnitude() <= 625f;
         }
         return position.copy().add(that.getPosition().copy().negate()).squareMagnitude() <= 1600f;
@@ -35,13 +38,23 @@ public class Player implements Collider {
 
     @Override
     public void onCollision(Collider that) {
-        if (that.getMark().equals("bullet")) {
+        if ("bullet".equals(that.getMark())) {
             Bullet bullet = (Bullet) that;
             if (bullet.getOwner().equals(this)) {
                 return;
             }
             bulletCollisionHandler.onCollision(this, bullet);
         }
+    }
+
+    @Override
+    public int width() {
+        return 40;
+    }
+
+    @Override
+    public int height() {
+        return 40;
     }
 
     @Override

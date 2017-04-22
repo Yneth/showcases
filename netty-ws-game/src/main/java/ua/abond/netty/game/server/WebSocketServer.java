@@ -163,8 +163,4 @@ public class WebSocketServer {
         }
         return null;
     }
-
-    private Vector2 randomPosition() {
-        return Vector2.builder().x(random.nextInt(500)).y(random.nextInt(500)).build();
-    }
 }

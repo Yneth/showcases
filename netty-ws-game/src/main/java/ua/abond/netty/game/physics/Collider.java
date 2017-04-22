@@ -8,5 +8,9 @@ public interface Collider {
 
     Vector2 getPosition();
 
+    int width();
+
+    int height();
+
     String getMark();
 }

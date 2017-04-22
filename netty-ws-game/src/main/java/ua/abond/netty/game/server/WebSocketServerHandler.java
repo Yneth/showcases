@@ -15,13 +15,10 @@ import ua.abond.netty.game.event.PlayerDisconnectedMessage;
 import ua.abond.netty.game.event.PlayerShootMessage;
 import ua.abond.netty.game.physics.Vector2;
 
-import java.security.SecureRandom;
 import java.util.Queue;
-import java.util.Random;
 
 @Slf4j
 public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
-    private final Random random = new SecureRandom();
     private final ChannelMap<Player> playerMap;
     private final Queue<Message> eventBus;
 
