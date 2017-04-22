@@ -6,7 +6,8 @@
     var buffer = document.createElement('canvas');
 
     var users = [],
-        bullets = [];
+        bullets = [],
+        walls = [];
 
     canvas.width = document.body.clientWidth;
     buffer.width = document.body.clientWidth;
@@ -42,19 +43,35 @@
         }
         users = [];
         bullets = [];
-        var i;
+        walls = [];
+        var i = 3;
         var playerCount = data[2];
-        for (i = 3; i < playerCount * 4 + 2; i += 4) {
+        while (playerCount-- > 0) {
             var x = (data[i] << 8) | data[i + 1];
             var y = (data[i + 2] << 8) | data[i + 3];
 
             users.push(toViewport(x, y));
+            i += 4;
         }
-        for (; i < data.length - 3; i += 4) {
-            var x = (data[i] << 8) | data[i + 1];
-            var y = (data[i + 2] << 8) | data[i + 3];
+        var bulletCount = sh2int(data[i], data[i + 1]);
+        i += 2;
+        while (bulletCount-- > 0) {
+            var x = sh2int(data[i], data[i + 1]);
+            var y = sh2int(data[i + 2], data[i + 3]);
 
             bullets.push(toViewport(x, y));
+            i += 4;
+        }
+        for (; i < data.length - 7; i += 8) {
+            var x = sh2int(data[i], data[i + 1]);
+            var y = sh2int(data[i + 2], data[i + 3]);
+            var width = sh2int(data[i + 4], data[i + 5]);
+            var height = sh2int(data[i + 6], data[i + 7]);
+
+            var wall = toViewport(x, y);
+            wall.width = width / 10;
+            wall.height = height / 10;
+            walls.push(wall);
         }
     };
 
@@ -93,6 +110,11 @@
             ctx.arc(bullets[i].x, bullets[i].y, 5, 0, 2 * Math.PI);
             ctx.stroke();
         }
+        for (var i = 0; i < walls.length; i++) {
+            var wall = walls[i];
+            ctx.rect(wall.x - wall.width / 2, wall.y - wall.height / 2, wall.width, wall.height);
+            ctx.stroke();
+        }
         window.requestAnimationFrame(draw);
     }
 
@@ -124,5 +146,9 @@
         y = y - (cameraScale / 2); // to camera pos
         y = y + (cameraScale / 2); // add viewport offset
         return {'x': x, 'y': y};
+    }
+
+    function sh2int(b0, b1) {
+        return b0 << 8 | b1;
     }
 })();
