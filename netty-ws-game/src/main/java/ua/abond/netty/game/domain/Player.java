@@ -4,10 +4,10 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import ua.abond.netty.game.physics.Collider;
-import ua.abond.netty.game.physics.Rect;
+import ua.abond.netty.game.physics.collision.Collider;
+import ua.abond.netty.game.physics.collision.collider.Rect;
 import ua.abond.netty.game.physics.Vector2;
-import ua.abond.netty.game.physics.collision.QuadNode;
+import ua.abond.netty.game.physics.collision.spatial.quad.QuadNode;
 
 @Data
 @Builder
@@ -29,8 +29,7 @@ public class Player implements Collider {
     public boolean collides(Collider that) {
         if ("wall".equals(that.getMark())) {
             return that.collides(this);
-        }
-        else if ("bullet".equals(that.getMark())) {
+        } else if ("bullet".equals(that.getMark())) {
             return position.copy().add(that.getPosition().copy().negate()).squareMagnitude() <= 625f;
         }
         return position.copy().add(that.getPosition().copy().negate()).squareMagnitude() <= 1600f;
@@ -44,6 +43,9 @@ public class Player implements Collider {
                 return;
             }
             bulletCollisionHandler.onCollision(this, bullet);
+        } else if ("wall".equals(that.getMark())) {
+            Vector2 position = that.getPosition();
+            that.width();
         }
     }
 

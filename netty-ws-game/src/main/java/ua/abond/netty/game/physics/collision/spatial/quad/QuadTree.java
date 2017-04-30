@@ -1,6 +1,6 @@
-package ua.abond.netty.game.physics.collision;
+package ua.abond.netty.game.physics.collision.spatial.quad;
 
-import ua.abond.netty.game.physics.Rect;
+import ua.abond.netty.game.physics.collision.collider.Rect;
 
 import java.util.ArrayList;
 import java.util.List;

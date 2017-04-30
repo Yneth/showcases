@@ -3,10 +3,10 @@ package ua.abond.netty.game.domain;
 import lombok.Builder;
 import lombok.Data;
 import lombok.ToString;
-import ua.abond.netty.game.physics.Collider;
-import ua.abond.netty.game.physics.Rect;
+import ua.abond.netty.game.physics.collision.Collider;
+import ua.abond.netty.game.physics.collision.collider.Rect;
 import ua.abond.netty.game.physics.Vector2;
-import ua.abond.netty.game.physics.collision.QuadNode;
+import ua.abond.netty.game.physics.collision.spatial.quad.QuadNode;
 
 @Data
 @Builder

@@ -1,4 +1,6 @@
-package ua.abond.netty.game.physics;
+package ua.abond.netty.game.physics.collision;
+
+import ua.abond.netty.game.physics.Vector2;
 
 public interface Collider {
 

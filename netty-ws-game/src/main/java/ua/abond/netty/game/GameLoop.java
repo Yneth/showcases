@@ -9,10 +9,10 @@ import ua.abond.netty.game.event.Message;
 import ua.abond.netty.game.event.PlayerAddedMessage;
 import ua.abond.netty.game.event.PlayerDisconnectedMessage;
 import ua.abond.netty.game.event.PlayerShootMessage;
-import ua.abond.netty.game.physics.Collider;
+import ua.abond.netty.game.physics.collision.Collider;
 import ua.abond.netty.game.physics.Vector2;
-import ua.abond.netty.game.physics.collision.QuadNode;
-import ua.abond.netty.game.physics.collision.QuadTree;
+import ua.abond.netty.game.physics.collision.spatial.quad.QuadNode;
+import ua.abond.netty.game.physics.collision.spatial.quad.QuadTree;
 
 import java.security.SecureRandom;
 import java.util.ArrayList;
@@ -158,9 +158,9 @@ public class GameLoop implements Runnable {
             quadTree.query(node.getRect(), nodes);
 
             for (QuadNode<Collider> other : nodes) {
-                Collider object = other.getElement();
-                if (!object.equals(player) && player.collides(object)) {
-                    player.onCollision(object);
+                Collider that = other.getElement();
+                if (!that.equals(player) && player.collides(that)) {
+                    player.onCollision(that);
                 }
             }
             nodes.clear();

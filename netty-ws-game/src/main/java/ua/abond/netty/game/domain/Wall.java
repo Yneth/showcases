@@ -2,10 +2,10 @@ package ua.abond.netty.game.domain;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import ua.abond.netty.game.physics.Collider;
-import ua.abond.netty.game.physics.Rect;
+import ua.abond.netty.game.physics.collision.Collider;
+import ua.abond.netty.game.physics.collision.collider.Rect;
 import ua.abond.netty.game.physics.Vector2;
-import ua.abond.netty.game.physics.collision.QuadNode;
+import ua.abond.netty.game.physics.collision.spatial.quad.QuadNode;
 
 @Data
 @NoArgsConstructor
@@ -57,8 +57,9 @@ public class Wall implements Collider {
     @Override
     public void onCollision(Collider that) {
         if ("bullet".equals(that.getMark())) {
-            if (collisionHandler == null)
+            if (collisionHandler == null) {
                 return;
+            }
 
             collisionHandler.onCollision(this, (Bullet) that);
         }

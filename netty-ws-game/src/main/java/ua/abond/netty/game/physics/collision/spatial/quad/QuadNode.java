@@ -1,8 +1,8 @@
-package ua.abond.netty.game.physics.collision;
+package ua.abond.netty.game.physics.collision.spatial.quad;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import ua.abond.netty.game.physics.Rect;
+import ua.abond.netty.game.physics.collision.collider.Rect;
 
 @Data
 @AllArgsConstructor

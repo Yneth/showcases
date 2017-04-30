@@ -1,6 +1,7 @@
 package ua.abond.netty.game.physics;
 
 import org.junit.Test;
+import ua.abond.netty.game.physics.collision.collider.Rect;
 
 import static org.junit.Assert.assertTrue;
 

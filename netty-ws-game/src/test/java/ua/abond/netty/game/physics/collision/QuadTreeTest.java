@@ -1,7 +1,9 @@
 package ua.abond.netty.game.physics.collision;
 
 import org.junit.Test;
-import ua.abond.netty.game.physics.Rect;
+import ua.abond.netty.game.physics.collision.collider.Rect;
+import ua.abond.netty.game.physics.collision.spatial.quad.QuadNode;
+import ua.abond.netty.game.physics.collision.spatial.quad.QuadTree;
 
 import java.util.Arrays;
 import java.util.List;
