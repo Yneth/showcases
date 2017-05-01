@@ -1,8 +1,7 @@
-package ua.abond.netty.game.physics.collision.collider;
+package ua.abond.netty.game.physics;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import ua.abond.netty.game.physics.Vector2;
 
 @Data
 @AllArgsConstructor
