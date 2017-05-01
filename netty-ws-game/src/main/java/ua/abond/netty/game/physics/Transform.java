@@ -7,4 +7,6 @@ import lombok.Setter;
 @Setter
 public class Transform {
     private Vector2 position;
+    private Vector2 size;
+    private Vector2 rotation;
 }

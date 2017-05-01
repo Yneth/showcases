@@ -3,7 +3,7 @@ package ua.abond.netty.game.domain;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import ua.abond.netty.game.physics.collision.Collider;
-import ua.abond.netty.game.physics.collision.collider.Rect;
+import ua.abond.netty.game.physics.Rect;
 import ua.abond.netty.game.physics.Vector2;
 import ua.abond.netty.game.physics.collision.spatial.quad.QuadNode;
 
@@ -31,12 +31,8 @@ public class Wall implements Collider {
     }
 
     private boolean collidesWithCircle(Collider that) {
-        // get upper left corner coordinates
-        float x = center.getX() - width * 0.5f;
-        float y = center.getY() - height * 0.5f;
-
-        float distX = Math.abs(that.getPosition().getX() - x - width * 0.5f);
-        float distY = Math.abs(that.getPosition().getY() - y - height * 0.5f);
+        float distX = Math.abs(that.getPosition().getX() - center.getX());
+        float distY = Math.abs(that.getPosition().getY() - center.getY());
         if (distX > (width + that.width()) * 0.5f) {
             return false;
         }

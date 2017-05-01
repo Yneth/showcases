@@ -1,12 +1,14 @@
 package ua.abond.netty.game.physics.collision.spatial.quad;
 
-import ua.abond.netty.game.physics.collision.collider.Rect;
+import ua.abond.netty.game.physics.Rect;
+import ua.abond.netty.game.physics.collision.SpatialIndex;
+import ua.abond.netty.game.util.function.Callable2;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class QuadTree<T> {
+public class QuadTree<T> implements SpatialIndex<QuadNode<T>> {
     private final Rect boundaries;
 
     private final int level;
@@ -45,6 +47,7 @@ public class QuadTree<T> {
         this.values = new ArrayList<>(5);
     }
 
+    @Override
     public boolean add(QuadNode<T> node) {
         Objects.requireNonNull(node.getRect(), "Passed rect cannot be null.");
 
@@ -57,6 +60,7 @@ public class QuadTree<T> {
         return doAdd(node);
     }
 
+    @Override
     public boolean remove(QuadNode<T> node) {
         Objects.requireNonNull(node, "Passed rect cannot be null.");
 
@@ -67,16 +71,37 @@ public class QuadTree<T> {
         return nodes[index].remove(node);
     }
 
+    @Override
     public boolean update(QuadNode<T> oldValue, QuadNode<T> newValue) {
         return remove(oldValue) && add(newValue);
     }
 
+    @Override
     public List<QuadNode<T>> query(Rect that) {
         return doQuery(that, new ArrayList<>());
     }
 
+    @Override
     public void query(Rect rect, List<QuadNode<T>> out) {
         doQuery(rect, out);
+    }
+
+    @Override
+    public void forEach(Callable2<QuadNode<T>, QuadNode<T>> fn) {
+        forEach(this, fn);
+    }
+
+    private void forEach(QuadTree<T> parent, Callable2<QuadNode<T>, QuadNode<T>> fn) {
+        List<QuadNode<T>> query = new ArrayList<>();
+        for (int i = 0; i < values.size(); i++) {
+            parent.query(values.get(i).rect, query);
+            for (int j = 0; j < query.size(); j++) {
+                fn.apply(values.get(i), query.get(i));
+            }
+        }
+        for (int i = 0; i < nodes.length; i++) {
+            forEach(parent, fn);
+        }
     }
 
     private List<QuadNode<T>> doQuery(Rect that, List<QuadNode<T>> result) {
@@ -99,11 +124,13 @@ public class QuadTree<T> {
         }
     }
 
+    @Override
     public boolean contains(QuadNode<T> node) {
         Objects.requireNonNull(node, "Passed rect cannot be null.");
         return node.getRect().isInside(boundaries);
     }
 
+    @Override
     public boolean contains(Rect rect) {
         Objects.requireNonNull(rect, "Passed rect cannot be null.");
         return rect.isInside(boundaries);
