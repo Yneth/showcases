@@ -39,10 +39,6 @@ public class CollisionStrategyService {
         Class<? extends Collider> left;
         Class<? extends Collider> right;
 
-        public Key(Collider c0, Collider c1) {
-            this(c0.getClass(), c1.getClass());
-        }
-
         private Key(Class<? extends Collider> c0, Class<? extends Collider> c1) {
             this.set(c0, c1);
         }

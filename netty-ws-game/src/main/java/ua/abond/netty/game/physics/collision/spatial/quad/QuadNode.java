@@ -1,12 +1,16 @@
 package ua.abond.netty.game.physics.collision.spatial.quad;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.Getter;
+import lombok.Setter;
 import ua.abond.netty.game.physics.Rect;
 
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(of = {"element"})
 @AllArgsConstructor
 public class QuadNode<T> {
-    T element;
-    Rect rect;
+    final T element;
+    final Rect rect;
 }

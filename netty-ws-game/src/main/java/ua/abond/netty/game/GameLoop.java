@@ -9,8 +9,10 @@ import ua.abond.netty.game.event.Message;
 import ua.abond.netty.game.event.PlayerAddedMessage;
 import ua.abond.netty.game.event.PlayerDisconnectedMessage;
 import ua.abond.netty.game.event.PlayerShootMessage;
-import ua.abond.netty.game.physics.collision.Collider;
 import ua.abond.netty.game.physics.Vector2;
+import ua.abond.netty.game.physics.collision.Collider;
+import ua.abond.netty.game.physics.collision.PhysicsService;
+import ua.abond.netty.game.physics.collision.service.PhysicsServiceImpl;
 import ua.abond.netty.game.physics.collision.spatial.quad.QuadNode;
 import ua.abond.netty.game.physics.collision.spatial.quad.QuadTree;
 
@@ -21,6 +23,7 @@ import java.util.Random;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 public class GameLoop implements Runnable {
+    private final PhysicsService physicsService;
     private final Random random = new SecureRandom();
     private final List<Bullet> bullets;
     private final List<Wall> walls;
@@ -30,6 +33,7 @@ public class GameLoop implements Runnable {
 
 
     public GameLoop(List<Bullet> bullets, ChannelMap<Player> channelMap, ConcurrentLinkedQueue<Message> eventBus, List<Wall> walls) {
+        this.physicsService = new PhysicsServiceImpl(new QuadTree<Collider>(-10, -10, 1020, 1020, 10, 1));
         this.bullets = bullets;
         this.channelMap = channelMap;
         this.eventBus = eventBus;
@@ -37,17 +41,17 @@ public class GameLoop implements Runnable {
 
         WallBulletCollisionHandler handler = (w, b) -> {
             bullets.remove(b);
-            quadTree.remove(Bullet.toQuadNode(b));
+            quadTree.remove(b);
         };
         Wall wall = new Wall(new Vector2(250, 250), 300, 5);
         wall.setCollisionHandler(handler);
         this.walls.add(wall);
-        this.quadTree.add(Wall.toQuadNode(wall));
+        this.quadTree.add(wall);
 
         Wall wall1 = new Wall(new Vector2(250, 250), 5, 300);
         wall1.setCollisionHandler(handler);
         this.walls.add(wall1);
-        this.quadTree.add(Wall.toQuadNode(wall1));
+        this.quadTree.add(wall1);
     }
 
     @Override
@@ -80,7 +84,7 @@ public class GameLoop implements Runnable {
                         .direction(rotation.copy())
                         .build();
                 bullets.add(bullet);
-                quadTree.add(Bullet.toQuadNode(bullet));
+                quadTree.add(bullet);
             } else if (poll instanceof PlayerAddedMessage) {
                 PlayerAddedMessage playerAddedMessage = (PlayerAddedMessage) poll;
 
@@ -96,17 +100,17 @@ public class GameLoop implements Runnable {
                                 return;
                             }
                             channelMap.remove(channelId);
-                            quadTree.remove(Player.toQuadNode(p));
+                            quadTree.remove(p);
                         })
                         .build();
-                quadTree.add(Player.toQuadNode(player));
+                quadTree.add(player);
                 channelMap.put(playerAddedMessage.getChannel(), player);
             } else if (poll instanceof PlayerDisconnectedMessage) {
                 PlayerDisconnectedMessage msg = (PlayerDisconnectedMessage) poll;
                 Player player = channelMap.get(msg.getChannel());
                 if (player != null) {
                     channelMap.remove(msg.getChannel());
-                    quadTree.remove(Player.toQuadNode(player));
+                    quadTree.remove(player);
                 }
             }
         }
@@ -118,18 +122,16 @@ public class GameLoop implements Runnable {
         for (int i = 0; i < bullets.size(); i++) {
             Bullet bullet = bullets.get(i);
 
-            QuadNode<Collider> old = Bullet.toQuadNode(bullet);
-
+            quadTree.remove(bullet);
             bullet.getPosition().add(bullet.getDirection().copy().multiply(speed).multiply(deltaTime));
             float x = bullet.getPosition().getX();
             float y = bullet.getPosition().getY();
 
-            QuadNode<Collider> updated = Bullet.toQuadNode(bullet);
             if (x >= 1000 || x <= 0 || y >= 1000 || y <= 0) {
                 bullets.remove(i);
-                quadTree.remove(old);
+            } else {
+                quadTree.add(bullet);
             }
-            quadTree.update(old, updated);
         }
     }
 
@@ -140,13 +142,13 @@ public class GameLoop implements Runnable {
             if (player.getPosition().isCloseTo(player.getTarget(), 1f)) {
                 continue;
             }
-            QuadNode<Collider> old = Player.toQuadNode(player);
+            quadTree.remove(player);
             Vector2 direction = player.getPosition().copy().minus(player.getTarget()).normalize();
             player.setRotation(direction.copy());
             Vector2 velocity = direction.multiply(speed).multiply(deltaTime);
 
             player.getPosition().add(velocity);
-            quadTree.update(old, Player.toQuadNode(player));
+            quadTree.add(player);
         }
     }
 

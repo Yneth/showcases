@@ -1,6 +1,8 @@
 package ua.abond.netty.game.physics.collision.spatial.quad;
 
 import ua.abond.netty.game.physics.Rect;
+import ua.abond.netty.game.physics.Vector2;
+import ua.abond.netty.game.physics.collision.Collider;
 import ua.abond.netty.game.physics.collision.SpatialIndex;
 import ua.abond.netty.game.util.function.Callable2;
 
@@ -8,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class QuadTree<T> implements SpatialIndex<QuadNode<T>> {
+public class QuadTree<T extends Collider> implements SpatialIndex<T, QuadNode<T>> {
     private final Rect boundaries;
 
     private final int level;
@@ -48,31 +50,45 @@ public class QuadTree<T> implements SpatialIndex<QuadNode<T>> {
     }
 
     @Override
-    public boolean add(QuadNode<T> node) {
-        Objects.requireNonNull(node.getRect(), "Passed rect cannot be null.");
+    public boolean add(T elem) {
+        Objects.requireNonNull(elem, "Passed collider cannot be null.");
 
-        if (!contains(node)) {
+        QuadNode<T> node = node(elem);
+        return doAdd(node);
+    }
+
+    private boolean doAdd(QuadNode<T> node) {
+        if (!contains(node.element)) {
             return false;
         }
         if (values.size() >= loadFactor && nodes == null && level < maxLevel) {
             subdivide();
         }
-        return doAdd(node);
+        int index = getIndex(node.getRect());
+        if (index >= 0) {
+            return nodes[index].doAdd(node);
+        }
+        return values.add(node);
     }
 
     @Override
-    public boolean remove(QuadNode<T> node) {
-        Objects.requireNonNull(node, "Passed rect cannot be null.");
+    public boolean remove(T value) {
+        Objects.requireNonNull(value, "Passed value cannot be null.");
 
+        QuadNode<T> node = node(value);
+        return doRemove(node);
+    }
+
+    private boolean doRemove(QuadNode<T> node) {
         int index = getIndex(node.getRect());
         if (index < 0) {
-            return doRemove(node);
+            return values.remove(node);
         }
-        return nodes[index].remove(node);
+        return nodes[index].doRemove(node);
     }
 
     @Override
-    public boolean update(QuadNode<T> oldValue, QuadNode<T> newValue) {
+    public boolean update(T oldValue, T newValue) {
         return remove(oldValue) && add(newValue);
     }
 
@@ -84,24 +100,6 @@ public class QuadTree<T> implements SpatialIndex<QuadNode<T>> {
     @Override
     public void query(Rect rect, List<QuadNode<T>> out) {
         doQuery(rect, out);
-    }
-
-    @Override
-    public void forEach(Callable2<QuadNode<T>, QuadNode<T>> fn) {
-        forEach(this, fn);
-    }
-
-    private void forEach(QuadTree<T> parent, Callable2<QuadNode<T>, QuadNode<T>> fn) {
-        List<QuadNode<T>> query = new ArrayList<>();
-        for (int i = 0; i < values.size(); i++) {
-            parent.query(values.get(i).rect, query);
-            for (int j = 0; j < query.size(); j++) {
-                fn.apply(values.get(i), query.get(i));
-            }
-        }
-        for (int i = 0; i < nodes.length; i++) {
-            forEach(parent, fn);
-        }
     }
 
     private List<QuadNode<T>> doQuery(Rect that, List<QuadNode<T>> result) {
@@ -125,34 +123,44 @@ public class QuadTree<T> implements SpatialIndex<QuadNode<T>> {
     }
 
     @Override
-    public boolean contains(QuadNode<T> node) {
-        Objects.requireNonNull(node, "Passed rect cannot be null.");
+    public void forEach(Callable2<T, T> fn) {
+        forEach(this, fn);
+    }
+
+    private void forEach(QuadTree<T> parent, Callable2<T, T> fn) {
+        List<QuadNode<T>> query = new ArrayList<>();
+        for (int i = 0; i < values.size(); i++) {
+            parent.query(values.get(i).rect, query);
+            for (int j = 0; j < query.size(); j++) {
+                fn.apply(values.get(i).element, query.get(i).element);
+            }
+        }
+        for (int i = 0; i < nodes.length; i++) {
+            forEach(parent, fn);
+        }
+    }
+
+    @Override
+    public boolean contains(T elem) {
+        Objects.requireNonNull(elem, "Passed rect cannot be null.");
+        QuadNode<T> node = node(elem);
         return node.getRect().isInside(boundaries);
+    }
+
+    private QuadNode<T> node(T elem) {
+        Vector2 position = elem.getPosition();
+        int width = elem.width();
+        int height = elem.height();
+        Rect rect = new Rect(
+                position.getX() - width * 0.5f, position.getY() - height * 0.5f, width, height
+        );
+        return new QuadNode<>(elem, rect);
     }
 
     @Override
     public boolean contains(Rect rect) {
         Objects.requireNonNull(rect, "Passed rect cannot be null.");
         return rect.isInside(boundaries);
-    }
-
-    private boolean doRemove(QuadNode<T> node) {
-        for (int i = 0; i < values.size(); i++) {
-            QuadNode<T> value = values.get(i);
-            if (node.getRect().equals(value.getRect())) {
-                values.remove(i);
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean doAdd(QuadNode<T> node) {
-        int index = getIndex(node.getRect());
-        if (index >= 0) {
-            return nodes[index].add(node);
-        }
-        return values.add(node);
     }
 
     private int getIndex(Rect rect) {

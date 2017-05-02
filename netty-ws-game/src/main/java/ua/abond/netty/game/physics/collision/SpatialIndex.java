@@ -5,7 +5,7 @@ import ua.abond.netty.game.util.function.Callable2;
 
 import java.util.List;
 
-public interface SpatialIndex<T> {
+public interface SpatialIndex<T, N> {
 
     boolean add(T value);
 
@@ -17,9 +17,9 @@ public interface SpatialIndex<T> {
 
     boolean contains(Rect boundaries);
 
-    List<T> query(Rect boundaries);
+    List<N> query(Rect boundaries);
 
-    void query(Rect boundaries, List<T> out);
+    void query(Rect boundaries, List<N> out);
 
     void forEach(Callable2<T, T> fn);
 }

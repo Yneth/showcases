@@ -4,13 +4,14 @@ import ua.abond.netty.game.physics.collision.Collider;
 import ua.abond.netty.game.physics.collision.PhysicsService;
 import ua.abond.netty.game.physics.collision.SpatialIndex;
 import ua.abond.netty.game.physics.collision.CollisionData;
+import ua.abond.netty.game.physics.collision.spatial.quad.QuadNode;
 
 public class PhysicsServiceImpl implements PhysicsService {
-    private SpatialIndex<Collider> spatialIndex;
+    private SpatialIndex<Collider, QuadNode<Collider>> spatialIndex;
 
     private CollisionStrategyService collisionStrategyService;
 
-    public PhysicsServiceImpl(SpatialIndex<Collider> spatialIndex) {
+    public PhysicsServiceImpl(SpatialIndex<Collider, QuadNode<Collider>> spatialIndex) {
         this.spatialIndex = spatialIndex;
         this.collisionStrategyService = new CollisionStrategyService();
     }
