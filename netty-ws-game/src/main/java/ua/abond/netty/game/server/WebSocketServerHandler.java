@@ -15,16 +15,15 @@ import ua.abond.netty.game.event.Message;
 import ua.abond.netty.game.event.PlayerAddedMessage;
 import ua.abond.netty.game.event.PlayerDisconnectedMessage;
 import ua.abond.netty.game.event.PlayerShootMessage;
+import ua.abond.netty.game.input.MessageQueue;
 import ua.abond.netty.game.physics.Vector2;
-
-import java.util.Queue;
 
 @Slf4j
 public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocketFrame> {
     private final ChannelMap<Player> playerMap;
-    private final Queue<Message> eventBus;
+    private final MessageQueue<Message> eventBus;
 
-    public WebSocketServerHandler(ChannelMap<Player> playerMap, Queue<Message> eventBus) {
+    public WebSocketServerHandler(ChannelMap<Player> playerMap, MessageQueue<Message> eventBus) {
         this.playerMap = playerMap;
         this.eventBus = eventBus;
     }
@@ -38,7 +37,7 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
     public void channelInactive(ChannelHandlerContext ctx) throws Exception {
         super.channelInactive(ctx);
         Channel channel = ctx.channel();
-        eventBus.add(new PlayerDisconnectedMessage(channel));
+        eventBus.push(new PlayerDisconnectedMessage(channel));
     }
 
     @Override
@@ -57,19 +56,19 @@ public class WebSocketServerHandler extends SimpleChannelInboundHandler<WebSocke
                 if (currentPlayer == null) {
                     return;
                 }
-                currentPlayer.setTarget(
+                currentPlayer.setDirection(
                         Vector2.builder()
                                 .x(x)
                                 .y(y)
                                 .build()
                 );
             } else if (commandId == 1) {
-                eventBus.add(new PlayerShootMessage(ctx.channel()));
+                eventBus.push(new PlayerShootMessage(ctx.channel()));
             } else if (commandId == 100) {
                 byte[] array = new byte[21];
                 content.readBytes(array);
                 String nickname = new String(array, "UTF-8");
-                eventBus.add(new PlayerAddedMessage(ctx.channel(), nickname));
+                eventBus.push(new PlayerAddedMessage(ctx.channel(), nickname));
             }
         }
     }

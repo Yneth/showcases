@@ -15,7 +15,7 @@ public class CircleRectCollisionStrategy
 
         Vector2 sign = new Vector2(Math.signum(dist.getX()), Math.signum(dist.getY()));
 
-        Vector2 rectRotation = c1.getTransform().getRotation();
+        Vector2 rectRotation = c1.getCollidable().getTransform().getRotation();
         Vector2 dist2 = new Vector2(
                 Math.abs(dist.getX() * rectRotation.getX() - dist.getY() * rectRotation.getY()),
                 Math.abs(dist.getY() * rectRotation.getX() + dist.getX() * rectRotation.getY())

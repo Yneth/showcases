@@ -28,16 +28,24 @@ public class CollisionStrategyService {
 
     @SuppressWarnings("unchecked")
     public boolean checkCollision(Collider c0, Collider c1, CollisionData data) {
+        cachedKey.set(c0, c1);
+        if (cachedKey.swapped) {
+            Collider temp = c0;
+            c0 = c1;
+            c1 = temp;
+        }
         return strategies
-                .get(cachedKey.set(c0, c1))
+                .get(cachedKey)
                 .collides(c0, c1, data);
     }
 
     @NoArgsConstructor
     @EqualsAndHashCode(of = {"left", "right"})
-    private static class Key {
+    private final static class Key {
         Class<? extends Collider> left;
         Class<? extends Collider> right;
+
+        boolean swapped;
 
         private Key(Class<? extends Collider> c0, Class<? extends Collider> c1) {
             this.set(c0, c1);
@@ -51,9 +59,11 @@ public class CollisionStrategyService {
             if (c0.hashCode() > c1.hashCode()) {
                 left = c1;
                 right = c0;
+                swapped = true;
             } else {
                 left = c0;
                 right = c1;
+                swapped = false;
             }
             return this;
         }

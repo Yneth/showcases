@@ -30,13 +30,14 @@ import ua.abond.netty.game.domain.Wall;
 import ua.abond.netty.game.event.Message;
 import ua.abond.netty.game.exception.ApplicationStartupException;
 import ua.abond.netty.game.exception.VerboseRunnable;
+import ua.abond.netty.game.input.MessageQueue;
+import ua.abond.netty.game.input.service.CASMessageQueue;
 import ua.abond.netty.game.physics.Vector2;
 
 import javax.net.ssl.SSLException;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -50,14 +51,14 @@ public class WebSocketServer {
     private final List<Bullet> bullets;
     private final List<Wall> walls;
     private final ChannelMap<Player> channelMap;
-    private final ConcurrentLinkedQueue<Message> eventBus;
+    private final MessageQueue<Message> eventBus;
 
     public WebSocketServer(int port) {
         this.port = port;
         this.bullets = new ArrayList<>();
         this.walls = new ArrayList<>();
         this.channelMap = new ChannelMap<>(new DefaultChannelGroup(GlobalEventExecutor.INSTANCE));
-        this.eventBus = new ConcurrentLinkedQueue<>();
+        this.eventBus = new CASMessageQueue();
     }
 
     public void start() {
@@ -76,7 +77,7 @@ public class WebSocketServer {
 
         executorService.scheduleAtFixedRate(
                 new VerboseRunnable(
-                        new GameLoop(bullets, channelMap, eventBus, walls)
+                        new GameLoop(channelMap, bullets, walls, eventBus)
                 ), 0, 17, TimeUnit.MILLISECONDS
         );
 
@@ -86,22 +87,22 @@ public class WebSocketServer {
             buf.writeByte(1);
             buf.writeByte(channelMap.values().size());
             for (Player player : channelMap.values()) {
-                Vector2 position = player.getPosition();
+                Vector2 position = player.getTransform().getPosition();
                 buf.writeShort((int) (position.getX() * 10));
                 buf.writeShort((int) (position.getY() * 10));
             }
             buf.writeShort(bullets.size());
             for (Bullet bullet : bullets) {
-                Vector2 position = bullet.getPosition();
+                Vector2 position = bullet.getTransform().getPosition();
                 buf.writeShort((int) (position.getX() * 10));
                 buf.writeShort((int) (position.getY() * 10));
             }
             for (Wall wall : walls) {
-                Vector2 position = wall.getPosition();
+                Vector2 position = wall.getTransform().getPosition();
                 buf.writeShort((int) (position.getX() * 10));
                 buf.writeShort((int) (position.getY() * 10));
-                buf.writeShort(wall.getWidth() * 10);
-                buf.writeShort(wall.getHeight() * 10);
+                buf.writeShort(wall.getCollider().width() * 10);
+                buf.writeShort(wall.getCollider().height() * 10);
             }
             channelMap.writeAndFlush(new BinaryWebSocketFrame(buf));
         }), 0, 33, TimeUnit.MILLISECONDS);

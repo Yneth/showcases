@@ -1,13 +1,15 @@
 package ua.abond.spring.lazy;
 
-import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 
 public class Main {
 
     public static void main(String[] args) {
-        ApplicationContext applicationContext = new ClassPathXmlApplicationContext("app-context.xml");
+        ClassPathXmlApplicationContext applicationContext =
+                new ClassPathXmlApplicationContext("app-context.xml");
 
         applicationContext.getBean("a");
+
+        applicationContext.close();
     }
 }

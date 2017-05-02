@@ -60,9 +60,9 @@
 //    @Test
 //    public void addShouldBeTrueWhenBotRightCorner() throws Exception {
 //        // GIVEN
-//        int size = 100;
-//        Rect rect = new Rect(size, size, 0, 0);
-//        QuadTree<Object> quadTree = new QuadTree<>(0, 0, size, size);
+//        int scale = 100;
+//        Rect rect = new Rect(scale, scale, 0, 0);
+//        QuadTree<Object> quadTree = new QuadTree<>(0, 0, scale, scale);
 //
 //        // WHEN
 //        boolean added = quadTree.add(new QuadNode<>(null, rect));

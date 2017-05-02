@@ -127,7 +127,7 @@
 
     function toWorld(x, y) {
         x = x + (cameraScale / 2) - (cameraScale / 2); // add camera pos AND subtract viewport offset
-        x = x / (cameraScale * 2); // divide by viewport size IE normalize
+        x = x / (cameraScale * 2); // divide by viewport scale IE normalize
         x = Math.round(x * 1000); // multiply to server coords
 
         y = y + (cameraScale / 2) - (cameraScale / 2);
@@ -138,12 +138,12 @@
 
     function toViewport(x, y) {
         x = x / 10000; // normalize
-        x = x * 2 * cameraScale; // to world viewport size
+        x = x * 2 * cameraScale; // to world viewport scale
         x = x - (cameraScale / 2); // to camera pos
         x = x + (cameraScale / 2); // add viewport offset
 
         y = y / 10000; // normalize
-        y = y * 2 * cameraScale; // to world viewport size
+        y = y * 2 * cameraScale; // to world viewport scale
         y = y - (cameraScale / 2); // to camera pos
         y = y + (cameraScale / 2); // add viewport offset
         return {'x': x, 'y': y};
