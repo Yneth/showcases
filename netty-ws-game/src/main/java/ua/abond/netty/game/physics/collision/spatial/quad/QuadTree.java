@@ -124,11 +124,11 @@ public class QuadTree<T extends Collider> implements SpatialIndex<T, QuadNode<T>
 
     @Override
     public void forEach(Callable2<T, T> fn) {
-        forEach(this, fn);
+        List<QuadNode<T>> query = new ArrayList<>();
+        forEach(this, fn, query);
     }
 
-    private void forEach(QuadTree<T> parent, Callable2<T, T> fn) {
-        List<QuadNode<T>> query = new ArrayList<>();
+    private void forEach(QuadTree<T> parent, Callable2<T, T> fn, List<QuadNode<T>> query) {
         for (int i = 0; i < values.size(); i++) {
             QuadNode<T> node = values.get(i);
             parent.query(node.rect, query);
@@ -141,7 +141,7 @@ public class QuadTree<T extends Collider> implements SpatialIndex<T, QuadNode<T>
             return;
         }
         for (int i = 0; i < nodes.length; i++) {
-            nodes[i].forEach(parent, fn);
+            nodes[i].forEach(parent, fn, query);
         }
     }
 

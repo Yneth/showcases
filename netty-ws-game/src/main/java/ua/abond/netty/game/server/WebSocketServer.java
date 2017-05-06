@@ -9,6 +9,7 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
+import io.netty.channel.group.ChannelMatchers;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
@@ -104,7 +105,7 @@ public class WebSocketServer {
                 buf.writeShort(wall.getCollider().width() * 10);
                 buf.writeShort(wall.getCollider().height() * 10);
             }
-            channelMap.writeAndFlush(new BinaryWebSocketFrame(buf));
+            channelMap.writeAndFlush(new BinaryWebSocketFrame(buf), ChannelMatchers.all(), true);
         }), 0, 33, TimeUnit.MILLISECONDS);
 
         final SslContext sslCtx = getSslContext();

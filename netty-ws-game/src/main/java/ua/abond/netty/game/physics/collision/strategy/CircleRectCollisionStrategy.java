@@ -28,7 +28,7 @@ public class CircleRectCollisionStrategy
             return false;
         }
         if (dist2.getX() <= c1.width() * 0.5f) {
-            collisionData.setContactPoint(translatePointOnBox(
+             collisionData.setContactPoint(translatePointOnBox(
                     c1.getPosition(), rectRotation, new Vector2(c1.width() * 0.5f, dist.getY()), sign
             ));
             return true;
