@@ -4,65 +4,44 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import ua.abond.netty.game.physics.Collider;
-import ua.abond.netty.game.physics.Rect;
+import ua.abond.netty.game.physics.Transform;
 import ua.abond.netty.game.physics.Vector2;
-import ua.abond.netty.game.physics.collision.QuadNode;
+import ua.abond.netty.game.physics.collision.Collidable;
+import ua.abond.netty.game.physics.collision.Collider;
+import ua.abond.netty.game.physics.collision.CollisionData;
 
 @Data
 @Builder
 @ToString(of = {"name", "position"})
 @EqualsAndHashCode(of = "name")
-public class Player implements Collider {
-    private Vector2 position;
-    private Vector2 target;
-    private Vector2 rotation;
+public class Player implements Collidable {
+    private Vector2 direction;
 
     private int screenWidth;
     private int screenHeight;
+
+    private Transform transform;
+    private Collider collider;
 
     private String name;
 
     private BulletCollisionHandler bulletCollisionHandler;
 
     @Override
-    public boolean collides(Collider that) {
-        if ("wall".equals(that.getMark())) {
-            return that.collides(this);
-        }
-        else if ("bullet".equals(that.getMark())) {
-            return position.copy().add(that.getPosition().copy().negate()).squareMagnitude() <= 625f;
-        }
-        return position.copy().add(that.getPosition().copy().negate()).squareMagnitude() <= 1600f;
+    public String getMark() {
+        return "player";
     }
 
     @Override
-    public void onCollision(Collider that) {
+    public void onCollision(Collidable that, CollisionData collisionData) {
+        Collider collider = that.getCollider();
         if ("bullet".equals(that.getMark())) {
             Bullet bullet = (Bullet) that;
             if (bullet.getOwner().equals(this)) {
                 return;
             }
             bulletCollisionHandler.onCollision(this, bullet);
+        } else if ("wall".equals(that.getMark())) {
         }
-    }
-
-    @Override
-    public int width() {
-        return 40;
-    }
-
-    @Override
-    public int height() {
-        return 40;
-    }
-
-    @Override
-    public String getMark() {
-        return "player";
-    }
-
-    public static QuadNode<Collider> toQuadNode(Player player) {
-        return new QuadNode<>(player, Rect.from(player.getPosition(), 40, 40));
     }
 }

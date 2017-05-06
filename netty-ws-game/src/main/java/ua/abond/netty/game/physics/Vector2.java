@@ -48,6 +48,16 @@ public class Vector2 {
         return this;
     }
 
+    public float cross(Vector2 that) {
+        return this.x * that.y - this.y * that.x;
+    }
+
+    public Vector2 multiply(Vector2 that) {
+        this.x *= that.x;
+        this.y *= that.y;
+        return this;
+    }
+
     public Vector2 multiply(float val) {
         this.x *= val;
         this.y *= val;

@@ -1,4 +1,4 @@
-package ua.abond.netty.game.thread;
+package ua.abond.netty.game.exception;
 
 import lombok.extern.slf4j.Slf4j;
 
