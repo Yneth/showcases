@@ -12,7 +12,7 @@ import ua.abond.netty.game.physics.collision.CollisionData;
 
 @Data
 @Builder
-@ToString(of = {"name", "position"})
+@ToString(of = {"name"})
 @EqualsAndHashCode(of = "name")
 public class Player implements Collidable {
     private Vector2 direction;
@@ -42,6 +42,7 @@ public class Player implements Collidable {
             }
             bulletCollisionHandler.onCollision(this, bullet);
         } else if ("wall".equals(that.getMark())) {
+            Vector2 contactPoint = collisionData.getContactPoint();
         }
     }
 }

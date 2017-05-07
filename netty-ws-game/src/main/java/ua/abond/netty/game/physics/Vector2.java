@@ -64,6 +64,12 @@ public class Vector2 {
         return this;
     }
 
+    public Vector2 abs() {
+        this.x = Math.abs(x);
+        this.y = Math.abs(y);
+        return this;
+    }
+
     public Vector2 normalize() {
         float magnitude = magnitude();
         if (magnitude <= 0.0f) {

@@ -1,9 +1,9 @@
 package ua.abond.netty.game.physics.collision.strategy;
 
 import ua.abond.netty.game.physics.Vector2;
+import ua.abond.netty.game.physics.collision.CollisionData;
 import ua.abond.netty.game.physics.collision.CollisionService;
 import ua.abond.netty.game.physics.collision.collider.CircleCollider;
-import ua.abond.netty.game.physics.collision.CollisionData;
 import ua.abond.netty.game.physics.collision.collider.RectCollider;
 
 public class CircleRectCollisionStrategy
@@ -13,13 +13,16 @@ public class CircleRectCollisionStrategy
     public boolean collides(CircleCollider c0, RectCollider c1, CollisionData collisionData) {
         Vector2 dist = c0.getPosition().copy().add(c1.getPosition().copy().negate());
 
-        Vector2 sign = new Vector2(Math.signum(dist.getX()), Math.signum(dist.getY()));
-
         Vector2 rectRotation = c1.getCollidable().getTransform().getRotation();
+        rectRotation.setX((float) Math.sin(0.0f));
+        rectRotation.setY((float) Math.cos(0.0f));
         Vector2 dist2 = new Vector2(
-                Math.abs(dist.getX() * rectRotation.getX() - dist.getY() * rectRotation.getY()),
-                Math.abs(dist.getY() * rectRotation.getX() + dist.getX() * rectRotation.getY())
+                dist.getX() * rectRotation.getX() - dist.getY() * rectRotation.getY(),
+                dist.getY() * rectRotation.getX() + dist.getX() * rectRotation.getY()
         );
+
+        Vector2 sign = new Vector2(Math.signum(dist2.getX()), Math.signum(dist2.getY()));
+        dist2.abs();
 
         if (dist2.getX() > (c1.width() + c0.width()) * 0.5f) {
             return false;
@@ -28,7 +31,7 @@ public class CircleRectCollisionStrategy
             return false;
         }
         if (dist2.getX() <= c1.width() * 0.5f) {
-             collisionData.setContactPoint(translatePointOnBox(
+            collisionData.setContactPoint(translatePointOnBox(
                     c1.getPosition(), rectRotation, new Vector2(c1.width() * 0.5f, dist.getY()), sign
             ));
             return true;
