@@ -50,8 +50,22 @@
             var x = (data[i] << 8) | data[i + 1];
             var y = (data[i + 2] << 8) | data[i + 3];
 
-            users.push(toViewport(x, y));
-            i += 4;
+            var player = toViewport(x, y);
+
+            player.rotation = {};
+            player.rotation.x = data[i + 4];
+            player.rotation.y = data[i + 5];
+            if (player.rotation.x > 10) {
+                player.rotation.x = -(player.rotation.x & ~(1 << 5));
+            }
+            if (player.rotation.y > 10) {
+                player.rotation.y = -(player.rotation.y & ~(1 << 5));
+            }
+            player.rotation.x /= 10;
+            player.rotation.y /= 10;
+
+            users.push(player);
+            i += 6;
         }
         var bulletCount = sh2int(data[i], data[i + 1]);
         i += 2;
@@ -104,6 +118,14 @@
         for (var i = 0; i < users.length; i++) {
             ctx.beginPath();
             ctx.arc(users[i].x, users[i].y, 20, 0, 2 * Math.PI);
+            ctx.stroke();
+
+            ctx.beginPath();
+            var headX = users[i].x + users[i].rotation.x * 20;
+            var headY = users[i].y + users[i].rotation.y * 20;
+
+            ctx.moveTo(headX, headY);
+            ctx.lineTo(users[i].x, users[i].y);
             ctx.stroke();
         }
         for (var i = 0; i < bullets.length; i++) {

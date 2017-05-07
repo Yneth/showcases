@@ -31,9 +31,11 @@ public class PlayerShootHandler implements MessageHandler<PlayerShootMessage> {
         }
         Transform ownerTransform = owner.getTransform();
         Vector2 rotation = ownerTransform.getRotation();
+        Vector2 position = ownerTransform.getPosition().copy()
+                .add(rotation.copy().multiply(owner.getCollider().height() * 0.5f));
         Bullet bullet = Bullet.builder()
                 .owner(owner)
-                .transform(new Transform(ownerTransform.getPosition().copy()))
+                .transform(new Transform(position))
                 .direction(rotation.copy())
                 .build();
         bullet.setCollider(new CircleCollider(bullet, 5));

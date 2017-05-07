@@ -91,6 +91,14 @@ public class WebSocketServer {
                 Vector2 position = player.getTransform().getPosition();
                 buf.writeShort((int) (position.getX() * 10));
                 buf.writeShort((int) (position.getY() * 10));
+
+                Vector2 rotation = player.getTransform().getRotation();
+                int x = (int) (rotation.getX() * 10);
+                x = x < 0 ? Math.abs(x) | (1 << 5) : x;
+                int y = (int) (rotation.getY() * 10);
+                y = y < 0 ? Math.abs(y) | (1 << 5) : y;
+                buf.writeByte(x);
+                buf.writeByte(y);
             }
             buf.writeShort(bullets.size());
             for (Bullet bullet : bullets) {
