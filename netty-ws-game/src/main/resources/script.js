@@ -38,55 +38,68 @@
 
     socket.onmessage = function (e) {
         var data = new Uint8Array(e.data);
-        if (data[0] != 0) {
-            return;
-        }
-        users = [];
-        bullets = [];
-        walls = [];
-        var i = 3;
-        var playerCount = data[2];
-        while (playerCount-- > 0) {
-            var x = (data[i] << 8) | data[i + 1];
-            var y = (data[i + 2] << 8) | data[i + 3];
 
-            var player = toViewport(x, y);
+        var cmd = data[0];
+        var i = 1;
+        switch (cmd) {
+            case 1:
+            {
+                users = [];
+                while (i < data.length) {
+                    var x = (data[i] << 8) | data[i + 1];
+                    var y = (data[i + 2] << 8) | data[i + 3];
 
-            player.rotation = {};
-            player.rotation.x = data[i + 4];
-            player.rotation.y = data[i + 5];
-            if (player.rotation.x > 10) {
-                player.rotation.x = -(player.rotation.x & ~(1 << 5));
+                    var player = toViewport(x, y);
+
+                    player.rotation = {};
+                    player.rotation.x = data[i + 4];
+                    player.rotation.y = data[i + 5];
+                    if (player.rotation.x > 10) {
+                        player.rotation.x = -(player.rotation.x & ~(1 << 5));
+                    }
+                    if (player.rotation.y > 10) {
+                        player.rotation.y = -(player.rotation.y & ~(1 << 5));
+                    }
+                    player.rotation.x /= 10;
+                    player.rotation.y /= 10;
+
+                    users.push(player);
+                    i += 6;
+                }
+                break;
             }
-            if (player.rotation.y > 10) {
-                player.rotation.y = -(player.rotation.y & ~(1 << 5));
+            case 2:
+            {
+                bullets = [];
+                while (i < data.length) {
+                    var x = sh2int(data[i], data[i + 1]);
+                    var y = sh2int(data[i + 2], data[i + 3]);
+
+                    bullets.push(toViewport(x, y));
+                    i += 4;
+                }
+                break;
             }
-            player.rotation.x /= 10;
-            player.rotation.y /= 10;
+            case 3:
+            {
+                walls = [];
+                while (i < data.length) {
+                    var x = sh2int(data[i], data[i + 1]);
+                    var y = sh2int(data[i + 2], data[i + 3]);
+                    
+                    var width = sh2int(data[i + 4], data[i + 5]);
+                    var height = sh2int(data[i + 6], data[i + 7]);
 
-            users.push(player);
-            i += 6;
-        }
-        var bulletCount = sh2int(data[i], data[i + 1]);
-        i += 2;
-        while (bulletCount-- > 0) {
-            var x = sh2int(data[i], data[i + 1]);
-            var y = sh2int(data[i + 2], data[i + 3]);
-
-            bullets.push(toViewport(x, y));
-            i += 4;
-        }
-        for (; i < data.length - 7; i += 8) {
-            var x = sh2int(data[i], data[i + 1]);
-            var y = sh2int(data[i + 2], data[i + 3]);
-            var width = sh2int(data[i + 4], data[i + 5]);
-            var height = sh2int(data[i + 6], data[i + 7]);
-
-            var wall = toViewport(x, y);
-            var bounds = toViewport(width, height);
-            wall.width = bounds.x;
-            wall.height = bounds.y;
-            walls.push(wall);
+                    var wall = toViewport(x, y);
+                    var bounds = toViewport(width, height);
+                    wall.width = bounds.x;
+                    wall.height = bounds.y;
+                    walls.push(wall);
+                    
+                    i += 8;
+                }
+                break;
+            }
         }
     };
 

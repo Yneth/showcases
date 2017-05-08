@@ -32,6 +32,8 @@ public class Wall implements Collidable {
                 return;
             }
             wallBulletCollisionHandler.onCollision(this, (Bullet) other);
+        } else if ("player".equals(other.getMark())) {
+
         }
     }
 }

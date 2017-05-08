@@ -1,7 +1,6 @@
 package ua.abond.netty.game.server;
 
 import io.netty.bootstrap.ServerBootstrap;
-import io.netty.buffer.ByteBuf;
 import io.netty.buffer.ByteBufAllocator;
 import io.netty.buffer.PooledByteBufAllocator;
 import io.netty.channel.Channel;
@@ -9,12 +8,10 @@ import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.ChannelPipeline;
 import io.netty.channel.EventLoopGroup;
-import io.netty.channel.group.ChannelMatchers;
 import io.netty.channel.group.DefaultChannelGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpServerCodec;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import io.netty.handler.codec.http.websocketx.WebSocketServerProtocolHandler;
 import io.netty.handler.codec.http.websocketx.extensions.compression.WebSocketServerCompressionHandler;
 import io.netty.handler.ssl.SslContext;
@@ -25,20 +22,16 @@ import io.netty.util.concurrent.GlobalEventExecutor;
 import lombok.extern.slf4j.Slf4j;
 import ua.abond.netty.game.ChannelMap;
 import ua.abond.netty.game.GameLoop;
-import ua.abond.netty.game.domain.Bullet;
 import ua.abond.netty.game.domain.Player;
-import ua.abond.netty.game.domain.Wall;
 import ua.abond.netty.game.event.Message;
 import ua.abond.netty.game.exception.ApplicationStartupException;
 import ua.abond.netty.game.exception.VerboseRunnable;
+import ua.abond.netty.game.output.OutputLoop;
 import ua.abond.netty.game.input.MessageQueue;
 import ua.abond.netty.game.input.service.CASMessageQueue;
-import ua.abond.netty.game.physics.Vector2;
 
 import javax.net.ssl.SSLException;
 import java.security.cert.CertificateException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 
@@ -49,15 +42,11 @@ public class WebSocketServer {
     private static final String WEBSOCKET_URI = "/ws";
 
     private final int port;
-    private final List<Bullet> bullets;
-    private final List<Wall> walls;
     private final ChannelMap<Player> channelMap;
     private final MessageQueue<Message> eventBus;
 
     public WebSocketServer(int port) {
         this.port = port;
-        this.bullets = new ArrayList<>();
-        this.walls = new ArrayList<>();
         this.channelMap = new ChannelMap<>(new DefaultChannelGroup(GlobalEventExecutor.INSTANCE));
         this.eventBus = new CASMessageQueue();
     }
@@ -78,43 +67,9 @@ public class WebSocketServer {
 
         executorService.scheduleAtFixedRate(
                 new VerboseRunnable(
-                        new GameLoop(channelMap, bullets, walls, eventBus)
+                        new GameLoop(channelMap, eventBus, new OutputLoop(executorService, allocator))
                 ), 0, 17, TimeUnit.MILLISECONDS
         );
-
-        executorService.scheduleAtFixedRate(new VerboseRunnable(() -> {
-            ByteBuf buf = allocator.directBuffer();
-            buf.writeByte(0);
-            buf.writeByte(1);
-            buf.writeByte(channelMap.values().size());
-            for (Player player : channelMap.values()) {
-                Vector2 position = player.getTransform().getPosition();
-                buf.writeShort((int) (position.getX() * 10));
-                buf.writeShort((int) (position.getY() * 10));
-
-                Vector2 rotation = player.getTransform().getRotation();
-                int x = (int) (rotation.getX() * 10);
-                x = x < 0 ? Math.abs(x) | (1 << 5) : x;
-                int y = (int) (rotation.getY() * 10);
-                y = y < 0 ? Math.abs(y) | (1 << 5) : y;
-                buf.writeByte(x);
-                buf.writeByte(y);
-            }
-            buf.writeShort(bullets.size());
-            for (Bullet bullet : bullets) {
-                Vector2 position = bullet.getTransform().getPosition();
-                buf.writeShort((int) (position.getX() * 10));
-                buf.writeShort((int) (position.getY() * 10));
-            }
-            for (Wall wall : walls) {
-                Vector2 position = wall.getTransform().getPosition();
-                buf.writeShort((int) (position.getX() * 10));
-                buf.writeShort((int) (position.getY() * 10));
-                buf.writeShort(wall.getCollider().width() * 10);
-                buf.writeShort(wall.getCollider().height() * 10);
-            }
-            channelMap.writeAndFlush(new BinaryWebSocketFrame(buf), ChannelMatchers.all(), true);
-        }), 0, 33, TimeUnit.MILLISECONDS);
 
         final SslContext sslCtx = getSslContext();
 

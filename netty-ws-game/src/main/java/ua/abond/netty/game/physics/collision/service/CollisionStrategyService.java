@@ -56,7 +56,7 @@ public class CollisionStrategyService {
         }
 
         public final Key set(Class<? extends Collider> c0, Class<? extends Collider> c1) {
-            if (c0.hashCode() > c1.hashCode()) {
+            if (c0.getSimpleName().hashCode() < c1.getSimpleName().hashCode()) {
                 left = c1;
                 right = c0;
                 swapped = true;
