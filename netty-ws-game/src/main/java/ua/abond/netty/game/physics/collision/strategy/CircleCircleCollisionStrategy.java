@@ -12,7 +12,7 @@ public class CircleCircleCollisionStrategy
     public boolean collides(CircleCollider c0, CircleCollider c1, CollisionData collisionData) {
         Vector2 p0 = c0.getPosition().copy();
         Vector2 p1 = c1.getPosition().copy();
-        float dst = c0.getRadius() * c1.getRadius();
-        return p0.add(p1.negate()).squareMagnitude() <= dst * dst;
+        float dst = c0.getRadius() + c1.getRadius();
+        return p0.add(p1.negate()).squareMagnitude() <= (dst * dst);
     }
 }
