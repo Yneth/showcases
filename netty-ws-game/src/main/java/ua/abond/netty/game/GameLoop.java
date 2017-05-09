@@ -1,8 +1,5 @@
 package ua.abond.netty.game;
 
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.Channel;
-import io.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import ua.abond.netty.game.domain.Bullet;
 import ua.abond.netty.game.domain.Player;
 import ua.abond.netty.game.domain.Wall;
@@ -17,12 +14,10 @@ import ua.abond.netty.game.input.handler.PlayerAddedHandler;
 import ua.abond.netty.game.input.handler.PlayerDisconnectedHandler;
 import ua.abond.netty.game.input.handler.PlayerShootHandler;
 import ua.abond.netty.game.input.service.MessageServiceImpl;
-import ua.abond.netty.game.output.OutputLoop;
-import ua.abond.netty.game.output.SerializationService;
+import ua.abond.netty.game.output.loop.OutputLoop;
+import ua.abond.netty.game.output.loop.OutputLoopBootstrap;
 import ua.abond.netty.game.physics.Transform;
 import ua.abond.netty.game.physics.Vector2;
-import ua.abond.netty.game.physics.collision.Collidable;
-import ua.abond.netty.game.physics.collision.Collider;
 import ua.abond.netty.game.physics.collision.PhysicsService;
 import ua.abond.netty.game.physics.collision.collider.RectCollider;
 import ua.abond.netty.game.physics.collision.service.PhysicsServiceImpl;
@@ -39,7 +34,7 @@ public class GameLoop implements Runnable {
     private final PhysicsService physicsService;
     private final MessageService<Message> inputService;
 
-    public GameLoop(ChannelMap<Player> channelMap, MessageQueue<Message> messageQueue, OutputLoop outputLoop) {
+    public GameLoop(ChannelMap<Player> channelMap, MessageQueue<Message> messageQueue, OutputLoopBootstrap outputLoop) {
         this.physicsService = new PhysicsServiceImpl(new QuadTree<>(-10, -10, 1020, 1020, 10, 1));
         this.inputService = new MessageServiceImpl(messageQueue);
         this.inputService.addHandler(
@@ -58,59 +53,28 @@ public class GameLoop implements Runnable {
             bullets.remove(b);
             physicsService.remove(b.getCollider());
         };
-        Wall horizontalWall = new Wall(new Vector2(250, 250));
-        horizontalWall.setWallBulletCollisionHandler(handler);
-        horizontalWall.setCollider(new RectCollider(horizontalWall, 300, 5));
-        this.walls.add(horizontalWall);
-        this.physicsService.add(horizontalWall.getCollider());
+        createWall(new Vector2(250, 250), 5, 300, handler);
+        createWall(new Vector2(250, 250), 300, 5, handler);
 
-        Wall wall1 = new Wall(new Vector2(250, 250));
-        wall1.setWallBulletCollisionHandler(handler);
-        wall1.setCollider(new RectCollider(wall1, 5, 300));
-        this.walls.add(wall1);
-        this.physicsService.add(wall1.getCollider());
+        createWall(new Vector2(750, 250), 5, 300, handler);
+        createWall(new Vector2(750, 250), 300, 5, handler);
 
-        SerializationService serializationService = new SerializationService();
-        outputLoop.setOutputCallback(allocator -> {
-            for (Player player : channelMap.values()) {
-                Channel channel = channelMap.find(channelMap.find(player));
-                if (channel == null)
-                    return;
+        createWall(new Vector2(250, 750), 5, 300, handler);
+        createWall(new Vector2(250, 750), 300, 5, handler);
 
-                List<Collider> colliders = physicsService.viewFrustum(
-                        player.getTransform().getPosition(),
-                        1000, 1000
-                );
+        createWall(new Vector2(750, 750), 5, 300, handler);
+        createWall(new Vector2(750, 750), 300, 5, handler);
 
-                ByteBuf playerBuffer = allocator.directBuffer();
-                playerBuffer.writeByte(1);
-                ByteBuf bulletBuffer = allocator.directBuffer();
-                bulletBuffer.writeByte(2);
-                ByteBuf wallBuffer = allocator.directBuffer();
-                wallBuffer.writeByte(3);
-                for (Collider collider : colliders) {
-                    Collidable collidable = collider.getCollidable();
-                    if (collidable instanceof Player) {
-                        serializationService.serialize(collidable, playerBuffer);
-                    } else if (collidable instanceof Bullet) {
-                        serializationService.serialize(collidable, bulletBuffer);
-                    } else if (collidable instanceof Wall) {
-                        serializationService.serialize(collidable, wallBuffer);
-                    }
-                }
-                if (playerBuffer.writerIndex() != 1) {
-                    channel.write(new BinaryWebSocketFrame(playerBuffer));
-                }
-                if (bulletBuffer.writerIndex() != 1) {
-                    channel.write(new BinaryWebSocketFrame(bulletBuffer));
-                }
-                if (wallBuffer.writerIndex() != 1) {
-                    channel.write(new BinaryWebSocketFrame(wallBuffer));
-                }
-            }
-            channelMap.flush();
-        });
+        outputLoop.setOutputCallback(new OutputLoop(channelMap, physicsService));
         outputLoop.start();
+    }
+
+    private void createWall(Vector2 pos, int w, int h, WallBulletCollisionHandler handler) {
+        Wall wall = new Wall(pos);
+        wall.setWallBulletCollisionHandler(handler);
+        wall.setCollider(new RectCollider(wall, w, h));
+        this.walls.add(wall);
+        this.physicsService.add(wall.getCollider());
     }
 
     @Override
@@ -162,6 +126,7 @@ public class GameLoop implements Runnable {
 
             transform.getPosition().add(velocity);
             physicsService.add(player.getCollider());
+            player.getCameraComponent().update(deltaTime);
         }
     }
 }
