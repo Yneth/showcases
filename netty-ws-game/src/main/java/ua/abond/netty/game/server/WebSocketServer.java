@@ -26,7 +26,7 @@ import ua.abond.netty.game.domain.Player;
 import ua.abond.netty.game.event.Message;
 import ua.abond.netty.game.exception.ApplicationStartupException;
 import ua.abond.netty.game.exception.VerboseRunnable;
-import ua.abond.netty.game.output.OutputLoop;
+import ua.abond.netty.game.output.loop.OutputLoopBootstrap;
 import ua.abond.netty.game.input.MessageQueue;
 import ua.abond.netty.game.input.service.CASMessageQueue;
 
@@ -67,7 +67,7 @@ public class WebSocketServer {
 
         executorService.scheduleAtFixedRate(
                 new VerboseRunnable(
-                        new GameLoop(channelMap, eventBus, new OutputLoop(executorService, allocator))
+                        new GameLoop(channelMap, eventBus, new OutputLoopBootstrap(executorService, allocator))
                 ), 0, 17, TimeUnit.MILLISECONDS
         );
 

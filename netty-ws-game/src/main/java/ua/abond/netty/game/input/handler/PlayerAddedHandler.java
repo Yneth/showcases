@@ -3,6 +3,7 @@ package ua.abond.netty.game.input.handler;
 import io.netty.channel.ChannelId;
 import ua.abond.netty.game.ChannelMap;
 import ua.abond.netty.game.domain.Player;
+import ua.abond.netty.game.domain.component.CameraComponent;
 import ua.abond.netty.game.event.PlayerAddedMessage;
 import ua.abond.netty.game.input.MessageHandler;
 import ua.abond.netty.game.physics.Transform;
@@ -27,9 +28,10 @@ public class PlayerAddedHandler implements MessageHandler<PlayerAddedMessage> {
     @Override
     public void handle(PlayerAddedMessage msg) {
         Vector2 position = generateRandomPosition();
+        Transform transform = new Transform(position);
         Player player = Player.builder()
                 .name(msg.getName())
-                .transform(new Transform(position))
+                .transform(transform)
                 .direction(position)
                 .bulletCollisionHandler((p, b) -> {
                     ChannelId channelId = players.find(p);
@@ -39,6 +41,7 @@ public class PlayerAddedHandler implements MessageHandler<PlayerAddedMessage> {
                     players.remove(channelId);
                     physicsService.remove(p.getCollider());
                 })
+                .cameraComponent(new CameraComponent(transform, 100f))
                 .build();
         player.setCollider(new CircleCollider(player, 20));
         physicsService.add(player.getCollider());

@@ -5,10 +5,6 @@
     var canvas = document.getElementById('canvas');
     var buffer = document.createElement('canvas');
 
-    var users = [],
-        bullets = [],
-        walls = [];
-
     canvas.width = document.body.clientWidth;
     buffer.width = document.body.clientWidth;
 
@@ -18,7 +14,13 @@
     var canvasWidth = canvas.width,
         canvasHeight = canvas.height,
         cameraScale = Math.min(canvasWidth, canvasHeight),
-        boundingRect = canvas.getBoundingClientRect();
+        boundingRect = canvas.getBoundingClientRect(),
+        scale = Math.min(canvasWidth / 1000, canvasHeight / 1000);
+
+    var camera = {'x': 250, 'y': 250},
+        users = [],
+        bullets = [],
+        walls = [];
 
     var ctx = canvas.getContext('2d');
 
@@ -42,6 +44,14 @@
         var cmd = data[0];
         var i = 1;
         switch (cmd) {
+            case 0:
+            {
+                var x = (data[i] << 8) | data[i + 1];
+                var y = (data[i + 2] << 8) | data[i + 3];
+                camera.x = (x / 10000) * cameraScale;
+                camera.y = (y / 10000) * cameraScale;
+                break;
+            }
             case 1:
             {
                 users = [];
@@ -86,7 +96,7 @@
                 while (i < data.length) {
                     var x = sh2int(data[i], data[i + 1]);
                     var y = sh2int(data[i + 2], data[i + 3]);
-                    
+
                     var width = sh2int(data[i + 4], data[i + 5]);
                     var height = sh2int(data[i + 6], data[i + 7]);
 
@@ -95,7 +105,7 @@
                     wall.width = bounds.x;
                     wall.height = bounds.y;
                     walls.push(wall);
-                    
+
                     i += 8;
                 }
                 break;
@@ -128,6 +138,10 @@
 
     function draw() {
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+
+        ctx.save();
+        ctx.scale(scale, scale);
+        ctx.translate(-camera.x + 250, -camera.y);
         for (var i = 0; i < users.length; i++) {
             ctx.beginPath();
             ctx.arc(users[i].x, users[i].y, 20, 0, 2 * Math.PI);
@@ -151,6 +165,7 @@
             ctx.rect(wall.x - wall.width / 2, wall.y - wall.height / 2, wall.width, wall.height);
             ctx.stroke();
         }
+        ctx.restore();
         window.requestAnimationFrame(draw);
     }
 
@@ -161,11 +176,11 @@
     });
 
     function toWorld(x, y) {
-        x = x + (cameraScale / 2) - (cameraScale / 2); // add camera pos AND subtract viewport offset
+        x = x + camera.x;
         x = x / (cameraScale * 2); // divide by viewport scale IE normalize
         x = Math.round(x * 1000); // multiply to server coords
 
-        y = y + (cameraScale / 2) - (cameraScale / 2);
+        y = y + camera.y;
         y = y / (cameraScale * 2);
         y = Math.round(y * 1000);
         return {'x': x, 'y': y};
@@ -174,13 +189,9 @@
     function toViewport(x, y) {
         x = x / 10000; // normalize
         x = x * 2 * cameraScale; // to world viewport scale
-        x = x - (cameraScale / 2); // to camera pos
-        x = x + (cameraScale / 2); // add viewport offset
 
         y = y / 10000; // normalize
         y = y * 2 * cameraScale; // to world viewport scale
-        y = y - (cameraScale / 2); // to camera pos
-        y = y + (cameraScale / 2); // add viewport offset
         return {'x': x, 'y': y};
     }
 

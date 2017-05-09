@@ -4,7 +4,9 @@ import io.netty.buffer.ByteBuf;
 import ua.abond.netty.game.domain.Bullet;
 import ua.abond.netty.game.domain.Player;
 import ua.abond.netty.game.domain.Wall;
+import ua.abond.netty.game.domain.component.CameraComponent;
 import ua.abond.netty.game.output.serialize.BulletSerializer;
+import ua.abond.netty.game.output.serialize.CameraSerializer;
 import ua.abond.netty.game.output.serialize.PlayerSerializer;
 import ua.abond.netty.game.output.serialize.PositionSerializer;
 import ua.abond.netty.game.output.serialize.RotationSerializer;
@@ -25,6 +27,7 @@ public class SerializationService {
         this.serializers.put(Wall.class, new WallSerializer(positionSerializer));
         this.serializers.put(Player.class, new PlayerSerializer(positionSerializer, rotationSerializer));
         this.serializers.put(Bullet.class, new BulletSerializer(positionSerializer));
+        this.serializers.put(CameraComponent.class, new CameraSerializer(positionSerializer));
     }
 
     @SuppressWarnings("unchecked")

@@ -80,6 +80,12 @@ public class Vector2 {
         return this;
     }
 
+    public Vector2 set(float x, float y) {
+        this.x = x;
+        this.y = y;
+        return this;
+    }
+
     public float magnitude() {
         return (float) Math.sqrt(x * x + y * y);
     }

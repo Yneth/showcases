@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
+import ua.abond.netty.game.domain.component.CameraComponent;
 import ua.abond.netty.game.physics.Transform;
 import ua.abond.netty.game.physics.Vector2;
 import ua.abond.netty.game.physics.collision.Collidable;
@@ -15,6 +16,7 @@ import ua.abond.netty.game.physics.collision.CollisionData;
 @ToString(of = {"name"})
 @EqualsAndHashCode(of = "name")
 public class Player implements Collidable {
+    private String name;
     private Vector2 direction;
 
     private int screenWidth;
@@ -23,7 +25,7 @@ public class Player implements Collidable {
     private Transform transform;
     private Collider collider;
 
-    private String name;
+    private CameraComponent cameraComponent;
 
     private BulletCollisionHandler bulletCollisionHandler;
 
