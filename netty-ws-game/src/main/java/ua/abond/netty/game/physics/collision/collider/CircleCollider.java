@@ -2,13 +2,14 @@ package ua.abond.netty.game.physics.collision.collider;
 
 import lombok.Getter;
 import lombok.Setter;
+import ua.abond.netty.game.domain.component.Component;
 import ua.abond.netty.game.physics.Vector2;
 import ua.abond.netty.game.physics.collision.Collidable;
 import ua.abond.netty.game.physics.collision.Collider;
 
 @Getter
 @Setter
-public class CircleCollider implements Collider {
+public class CircleCollider implements Component, Collider {
     private final Collidable collidable;
 
     private float radius;
@@ -31,5 +32,9 @@ public class CircleCollider implements Collider {
     @Override
     public int height() {
         return Math.round(radius * 2);
+    }
+
+    @Override
+    public void update(float deltaTime) {
     }
 }

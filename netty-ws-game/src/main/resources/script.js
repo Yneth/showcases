@@ -11,18 +11,22 @@
     canvas.height = document.body.clientHeight;
     buffer.height = document.body.clientHeight;
 
+
+
     var canvasWidth = canvas.width,
         canvasHeight = canvas.height,
         cameraScale = Math.min(canvasWidth, canvasHeight),
         boundingRect = canvas.getBoundingClientRect(),
         scale = Math.min(canvasWidth / 1000, canvasHeight / 1000);
 
-    var camera = {'x': 250, 'y': 250},
+    var // camera = {'x': 250, 'y': 250},
         users = [],
         bullets = [],
         walls = [];
 
     var ctx = canvas.getContext('2d');
+
+    var camera = new Camera(ctx);
 
     var socket = new WebSocket(WS_URL);
     socket.binaryType = 'arraybuffer';
@@ -48,8 +52,11 @@
             {
                 var x = (data[i] << 8) | data[i + 1];
                 var y = (data[i + 2] << 8) | data[i + 3];
-                camera.x = (x / 10000) * cameraScale;
-                camera.y = (y / 10000) * cameraScale;
+                // camera.x = (x / 10000) * cameraScale;
+                // camera.y = (y / 10000) * cameraScale;
+
+                var vec = camera.worldToScreen(x, y);
+                camera.moveTo(vec.x, vec.y);
                 break;
             }
             case 1:
@@ -139,9 +146,12 @@
     function draw() {
         ctx.clearRect(0, 0, canvasWidth, canvasHeight);
 
-        ctx.save();
-        ctx.scale(scale, scale);
-        ctx.translate(-camera.x + 250, -camera.y);
+        // ctx.save();
+        // ctx.scale(scale, scale);
+        // ctx.translate(-camera.x, -camera.y);
+        // ctx.translate(canvasWidth * 0.5, canvasHeight * 0.5);
+        camera.begin();
+
         for (var i = 0; i < users.length; i++) {
             ctx.beginPath();
             ctx.arc(users[i].x, users[i].y, 20, 0, 2 * Math.PI);
@@ -165,7 +175,8 @@
             ctx.rect(wall.x - wall.width / 2, wall.y - wall.height / 2, wall.width, wall.height);
             ctx.stroke();
         }
-        ctx.restore();
+        // ctx.restore();
+        camera.end();
         window.requestAnimationFrame(draw);
     }
 
@@ -176,23 +187,27 @@
     });
 
     function toWorld(x, y) {
-        x = x + camera.x;
-        x = x / (cameraScale * 2); // divide by viewport scale IE normalize
-        x = Math.round(x * 1000); // multiply to server coords
-
-        y = y + camera.y;
-        y = y / (cameraScale * 2);
-        y = Math.round(y * 1000);
+        // x = x + camera.x;
+        // x = x / (cameraScale * 2); // divide by viewport scale IE normalize
+        // x = Math.round(x * 1000); // multiply to server coords
+        //
+        // y = y + camera.y;
+        // y = y / (cameraScale * 2);
+        // y = Math.round(y * 1000);
+        var vec = camera.screenToWorld(x, y);
+        vec.x = Math.round(vec.x * 1000);
+        vec.y = Math.round(vec.y * 1000);
         return {'x': x, 'y': y};
     }
 
     function toViewport(x, y) {
         x = x / 10000; // normalize
-        x = x * 2 * cameraScale; // to world viewport scale
+        // x = x * 2 * cameraScale; // to world viewport scale
 
         y = y / 10000; // normalize
-        y = y * 2 * cameraScale; // to world viewport scale
-        return {'x': x, 'y': y};
+        // y = y * 2 * cameraScale; // to world viewport scale
+        // return {'x': x, 'y': y};
+        return camera.worldToScreen(x, y);
     }
 
     function sh2int(b0, b1) {

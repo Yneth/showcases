@@ -14,7 +14,7 @@ public class Wall implements Collidable {
     private Transform transform;
     private Collider collider;
 
-    private WallBulletCollisionHandler wallBulletCollisionHandler;
+    private WallBulletCollisionListener wallBulletCollisionHandler;
 
     public Wall(Vector2 center) {
         this.transform = new Transform(center);
@@ -31,7 +31,7 @@ public class Wall implements Collidable {
             if (wallBulletCollisionHandler == null) {
                 return;
             }
-            wallBulletCollisionHandler.onCollision(this, (Bullet) other);
+//            wallBulletCollisionHandler.onCollision(this, (Bullet) other);
         } else if ("player".equals(other.getMark())) {
 
         }

@@ -8,7 +8,7 @@ import ua.abond.netty.game.physics.Vector2;
 
 @Setter
 @Getter
-public class CameraComponent implements Component {
+public class CameraComponent implements Behaviour {
     private final Transform parent;
 
     private float speed;

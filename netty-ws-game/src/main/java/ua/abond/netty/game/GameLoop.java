@@ -3,7 +3,7 @@ package ua.abond.netty.game;
 import ua.abond.netty.game.domain.Bullet;
 import ua.abond.netty.game.domain.Player;
 import ua.abond.netty.game.domain.Wall;
-import ua.abond.netty.game.domain.WallBulletCollisionHandler;
+import ua.abond.netty.game.domain.WallBulletCollisionListener;
 import ua.abond.netty.game.event.Message;
 import ua.abond.netty.game.event.PlayerAddedMessage;
 import ua.abond.netty.game.event.PlayerDisconnectedMessage;
@@ -49,7 +49,7 @@ public class GameLoop implements Runnable {
 
         this.channelMap = channelMap;
 
-        WallBulletCollisionHandler handler = (w, b) -> {
+        WallBulletCollisionListener handler = (w, b) -> {
             bullets.remove(b);
             physicsService.remove(b.getCollider());
         };
@@ -69,7 +69,7 @@ public class GameLoop implements Runnable {
         outputLoop.start();
     }
 
-    private void createWall(Vector2 pos, int w, int h, WallBulletCollisionHandler handler) {
+    private void createWall(Vector2 pos, int w, int h, WallBulletCollisionListener handler) {
         Wall wall = new Wall(pos);
         wall.setWallBulletCollisionHandler(handler);
         wall.setCollider(new RectCollider(wall, w, h));

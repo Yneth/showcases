@@ -1,8 +1,9 @@
 package ua.abond.netty.game.physics.collision;
 
+import ua.abond.netty.game.domain.component.Component;
 import ua.abond.netty.game.physics.Transform;
 
-public interface Collidable {
+public interface Collidable extends Component {
 
     Transform getTransform();
 
